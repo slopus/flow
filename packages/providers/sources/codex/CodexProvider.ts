@@ -6,7 +6,7 @@ export function createCodexProvider(token: string): ModelProvider {
     return {
         name: "codex",
         displayName: "OpenAI Codex (Subscription)",
-        models: async () => {
+        models: () => {
             return [
                 {
                     name: "gpt-5-codex-high",
@@ -22,7 +22,7 @@ export function createCodexProvider(token: string): ModelProvider {
                 },
             ];
         },
-        createSession: async (model: string) => {
+        createSession: (model: string) => {
             if (model === "gpt-5-codex-high") {
                 return new CodexSession(randomUUID(), "high", token);
             }

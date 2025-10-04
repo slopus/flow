@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SessionUpdate } from './SessionUpdate.js';
 
 export type ToolDefinition = {
     name: string;
@@ -8,5 +9,7 @@ export type ToolDefinition = {
 
 export type StepArguments = {
     text: string;
+    callback: (update: SessionUpdate) => void;
     tools?: ToolDefinition[];
+    webSearch?: boolean;
 }

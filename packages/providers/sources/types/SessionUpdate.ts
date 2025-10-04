@@ -8,4 +8,6 @@ export type SessionUpdate = {
     type: 'tool_call',
     name: string,
     arguments: string
+} | {
+    type: 'ended'
 }
