@@ -2,6 +2,8 @@ import { trimIdent } from "@slopus/helpers";
 import { tool } from "../Tool.js";
 import { z } from "zod";
 import { glob } from "glob";
+import { stat } from "node:fs/promises";
+import { resolve } from "node:path";
 
 export function createGlobTool(cwd: string) {
     return tool({
@@ -21,7 +23,16 @@ export function createGlobTool(cwd: string) {
         execute: async (args) => {
             const searchPath = args.path || cwd;
             const matches = await glob(args.pattern, { cwd: searchPath });
-            return matches;
+            const filesWithTimes = await Promise.all(matches.map(async (match) => {
+                try {
+                    const fileStat = await stat(resolve(searchPath, match));
+                    return { match, mtime: fileStat.mtimeMs };
+                } catch {
+                    return { match, mtime: 0 };
+                }
+            }));
+            filesWithTimes.sort((a, b) => b.mtime - a.mtime);
+            return filesWithTimes.map((item) => item.match);
         },
     })
 }

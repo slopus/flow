@@ -4,11 +4,17 @@ import * as React from "react";
 interface ComposerProps {
     placeholder?: string;
     onSubmit?: (text: string) => void;
+    onTab?: () => void;
+    onShiftTab?: () => void;
+    onCtrlC?: () => void;
 }
 
 export const Composer = React.memo<ComposerProps>(({
     placeholder = "Type your message...",
-    onSubmit
+    onSubmit,
+    onTab,
+    onShiftTab,
+    onCtrlC
 }) => {
     const [lines, setLines] = React.useState<string[]>(['']);
     const [cursor, setCursor] = React.useState<[number, number]>([0, 0]);
@@ -18,10 +24,27 @@ export const Composer = React.memo<ComposerProps>(({
         const [row, col] = cursor;
         const currentLine = lines[row];
 
-        // Ctrl+C - Clear input
+        // Ctrl+C callback
         if (key.ctrl && input === 'c') {
-            setLines(['']);
-            setCursor([0, 0]);
+            if (onCtrlC) {
+                onCtrlC();
+            }
+            return;
+        }
+
+        // Shift+Tab callback
+        if (key.shift && key.tab) {
+            if (onShiftTab) {
+                onShiftTab();
+            }
+            return;
+        }
+
+        // Regular Tab callback
+        if (key.tab && !key.shift) {
+            if (onTab) {
+                onTab();
+            }
             return;
         }
 

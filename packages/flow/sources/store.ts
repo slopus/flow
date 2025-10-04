@@ -1,7 +1,7 @@
 import { ModelDescriptor } from "@slopus/providers";
 import { create } from "zustand";
 
-export type EngineStore = {
+export type UIStore = {
     model: string;
     thinking: string | null;
     history: HistoryRecord[];
@@ -26,7 +26,7 @@ export type HistoryRecord = {
 };
 
 export function createEngineStore(model: ModelDescriptor) {
-    return create<EngineStore>((set) => ({
+    return create<UIStore>((set) => ({
         model: model.displayName,
         thinking: null,
         history: [],

@@ -2,7 +2,7 @@ import { Box, Text } from "ink";
 import * as React from "react";
 import { theme } from "../theme.js";
 import { MarkdownView } from "./MarkdownView.js";
-import { HistoryRecord } from "sources/engine/store.js";
+import { HistoryRecord } from "sources/store.js";
 
 // var KO = hA.platform === "darwin" ? "⏺" : "●";
 

@@ -1,5 +1,5 @@
 import { ModelProvider, ModelDescriptor, Session } from "@slopus/providers";
-import { createEngineStore } from "./store.js";
+import { createEngineStore } from "../store.js";
 import { Tool } from "./Tool.js";
 
 export class Engine {
