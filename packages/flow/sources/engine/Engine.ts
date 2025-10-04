@@ -1,5 +1,6 @@
 import { ModelProvider, ModelDescriptor, Session } from "@slopus/providers";
 import { createEngineStore } from "./store.js";
+import { Tool } from "./Tool.js";
 
 export class Engine {
 
@@ -9,9 +10,16 @@ export class Engine {
     #currentSession: Session;
     #store: ReturnType<typeof createEngineStore>;
     #pending: string[] = [];
+    #pendingToolCalls: { id: string, name: string, arguments: any }[] = [];
+    #pendingToolCallsResults: {
+        id: string,
+        content: string,
+        error: boolean
+    }[] = [];
     #abort: AbortController | null = null;
+    #tools: Map<string, Tool<any, any>> = new Map();
 
-    constructor(providers: ModelProvider[]) {
+    constructor(providers: ModelProvider[], tools: Tool<any, any>[]) {
 
         // Build models map
         let priority = 0;
@@ -33,6 +41,9 @@ export class Engine {
 
         // Create store
         this.#store = createEngineStore(this.model);
+
+        // Set tools
+        this.#tools = new Map(tools.map(tool => [tool.name, tool]));
     }
 
     get model() {
@@ -54,45 +65,91 @@ export class Engine {
 
     abort = () => {
         this.#abort?.abort();
+        this.#pending = [];
+        this.#pendingToolCalls = [];
+        this.#store.getState().setThinking(false);
     }
 
     #startThinkingIfNeeded() {
-        if (this.#abort || this.#pending.length === 0) {
+        if (this.#abort || (this.#pending.length === 0 && this.#pendingToolCalls.length === 0)) {
             return;
         }
         const abort = new AbortController();
         this.#abort = abort;
 
-        // Update store
-        let text = this.#pending.join('\n');
-        this.#pending = [];
-        this.#store.getState().appendHistory({ type: 'user', text });
-        this.#store.getState().setThinking(true);
+        (async () => {
 
-        // Start thinking
-    
-        this.#currentSession.step({
-            text,
-            webSearch: true,
-            callback: (update) => {
-                if (abort.signal.aborted) {
-                    return;
-                }
-                if (update.type === 'text') {
-                    this.#store.getState().appendHistory({ type: 'assistant', text: update.text });
-                } else if (update.type === 'tool_call') {
-                    this.#store.getState().appendHistory({ type: 'tool_call', name: update.name, arguments: update.arguments });
-                } else if (update.type === 'reasoning') {
-                    this.#store.getState().setThinking(update.text);
-                } else if (update.type === 'ended') {
-                    this.#abort = null;
-                    if (this.#pending.length === 0) {
-                        this.#store.getState().setThinking(false);
-                    } else {
-                        this.#startThinkingIfNeeded();
+            // Execute pending tool calls
+            while (this.#pendingToolCalls.length > 0 && !abort.signal.aborted) {
+                const toolCall = this.#pendingToolCalls.shift();
+                const tool = this.#tools.get(toolCall!.name);
+                if (!tool) {
+                    if (abort.signal.aborted) {
+                        return;
                     }
+                    this.#pendingToolCallsResults.push({ id: toolCall!.id, content: `Tool ${toolCall!.name} not found`, error: true });
+                    continue;
+                }
+
+                try {
+                    const result = await tool.execute(toolCall!.arguments);
+                    if (abort.signal.aborted) {
+                        return;
+                    }
+                    const toLLmResult = tool.toLLM(result);
+                    this.#pendingToolCallsResults.push({ id: toolCall!.id, content: toLLmResult, error: false });
+                } catch (error) {
+                    if (abort.signal.aborted) {
+                        return;
+                    }
+                    this.#pendingToolCallsResults.push({ id: toolCall!.id, content: error instanceof Error ? error.message : 'Error: ' + String(error), error: true });
                 }
             }
-        });
+
+            // Update store
+            let text = this.#pending.length > 0 ? this.#pending.join('\n') : null;
+            let toolResults = [...this.#pendingToolCallsResults];
+            this.#pending = [];
+            this.#pendingToolCallsResults = [];
+            if (text) {
+                this.#store.getState().appendHistory({ type: 'user', text });
+            }
+            this.#store.getState().setThinking(true);
+
+            // Start thinking
+            // this.#store.getState().appendHistory({ type: 'debug', text: 'start thinking' });
+            this.#currentSession.step({
+                text,
+                toolResults,
+                tools: Array.from(this.#tools.values()).map(tool => ({
+                    name: tool.name,
+                    description: tool.description,
+                    parameters: tool.parameters,
+                })),
+                webSearch: true,
+                callback: (update) => {
+                    if (abort.signal.aborted) {
+                        return;
+                    }
+                    if (update.type === 'text') {
+                        this.#store.getState().appendHistory({ type: 'assistant', text: update.text });
+                    } else if (update.type === 'tool_call') {
+                        this.#pendingToolCalls.push({ id: update.id, name: update.name, arguments: update.arguments });
+                        this.#store.getState().appendHistory({ type: 'tool_call', name: update.name, arguments: update.arguments });
+                    } else if (update.type === 'reasoning') {
+                        this.#store.getState().setThinking(update.text);
+                    } else if (update.type === 'ended') {
+                        // this.#store.getState().appendHistory({ type: 'debug', text: 'Ended ' + this.#pending.length + ' ' + this.#pendingToolCalls.length });
+                        this.#abort = null;
+                        if (this.#pending.length === 0 && this.#pendingToolCalls.length === 0) {
+                            // this.#store.getState().appendHistory({ type: 'debug', text: 'stop thinking' });
+                            this.#store.getState().setThinking(false);
+                        } else {
+                            this.#startThinkingIfNeeded();
+                        }
+                    }
+                }
+            });
+        })();
     }
 }

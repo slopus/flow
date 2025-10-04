@@ -14,11 +14,13 @@ export const App = React.memo((props: { engine: Engine }) => {
             <Box marginBottom={1}>
                 <WelcomeBanner />
             </Box>
-            {store.history.map((update, index) => (
-                <Box key={index} marginBottom={1}>
-                    <HistoryItem data={update} />
-                </Box>
-            ))}
+            <Box flexDirection="column">
+                {store.history.map((update, index) => (
+                    <Box key={index} marginBottom={1}>
+                        <HistoryItem data={update} />
+                    </Box>
+                ))}
+            </Box>
             {store.thinking && (
                 <Box flexDirection="row" height={1} marginBottom={1}>
                     <Thinking text={store.thinking} />

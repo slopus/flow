@@ -19,7 +19,10 @@ export type HistoryRecord = {
 } | {
     type: 'tool_call',
     name: string,
-    arguments: string;
+    arguments: any;
+} | {
+    type: 'debug',
+    text: string;
 };
 
 export function createEngineStore(model: ModelDescriptor) {
@@ -31,7 +34,7 @@ export function createEngineStore(model: ModelDescriptor) {
         setThinking: (thinking: string | boolean) => set(state => ({
             thinking: typeof thinking === 'string' ? thinking : (
                 thinking === true
-                    ? (state.thinking ? null : "Thinking")
+                    ? (state.thinking ? state.thinking : "Thinking")
                     : null
             )
         })),

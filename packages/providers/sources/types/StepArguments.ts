@@ -8,7 +8,12 @@ export type ToolDefinition = {
 }
 
 export type StepArguments = {
-    text: string;
+    text: string | null;
+    toolResults: {
+        id: string;
+        content: string;
+        error: boolean;
+    }[];
     callback: (update: SessionUpdate) => void;
     tools?: ToolDefinition[];
     webSearch?: boolean;

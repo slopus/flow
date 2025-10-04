@@ -6,8 +6,9 @@ export type SessionUpdate = {
     text: string
 } | {
     type: 'tool_call',
+    id: string,
     name: string,
-    arguments: string
+    arguments: any
 } | {
     type: 'ended'
 }

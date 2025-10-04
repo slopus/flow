@@ -46,18 +46,25 @@ export type CodexReasoningMessage = {
 
 export type CodexFunctionCallMessage = {
     type: "function_call";
+    id: string;
     status: "in_progress" | "completed";
     arguments: string;
     call_id: string;
     name: string;
-    id?: string;
+};
+
+export type CodexFunctionCallOutputMessage = {
+    type: "function_call_output";
+    call_id: string;
+    output: string;
 };
 
 export type CodexMessage =
     | CodexUserMessage
     | CodexAssistantMessage
     | CodexReasoningMessage
-    | CodexFunctionCallMessage;
+    | CodexFunctionCallMessage
+    | CodexFunctionCallOutputMessage;
 
 export interface CodexTool {
     type: string;

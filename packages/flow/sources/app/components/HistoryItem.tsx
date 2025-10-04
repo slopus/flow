@@ -25,20 +25,18 @@ export const HistoryItem = React.memo((props: {
                 </Box>
             </Box>
         );
-    } else if (props.data.type === 'reasoning') {
-        return (
-            <Box flexDirection="row">
-                <Text color={theme.secondary}>{'⏺ '}</Text>
-                <Box flexDirection="column" flexGrow={1}>
-                    <Text color={theme.secondary}>{props.data.text}</Text>
-                </Box>
-            </Box>
-        );
     } else if (props.data.type === 'tool_call') {
         return (
             <Box flexDirection="row">
                 <Text color="gray">{'⏺ '}</Text>
-                <Text>{props.data.name} {props.data.arguments}</Text>
+                <Text>{props.data.name} {JSON.stringify(props.data.arguments)}</Text>
+            </Box>
+        );
+    } else if (props.data.type === 'debug') {
+        return (
+            <Box flexDirection="row">
+                <Text color="gray">{'⏺ '}</Text>
+                <Text color="gray">{props.data.text}</Text>
             </Box>
         );
     } else {

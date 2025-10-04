@@ -1,5 +1,4 @@
 import { Session } from "../types/Session.js";
-import { SessionUpdate } from "../types/SessionUpdate.js";
 import { StepArguments, ToolDefinition } from "../types/StepArguments.js";
 import { codexRequest, isSSEEvent, CodexMessage, CodexUserMessage, CodexTool } from "./api/responses.js";
 import { zodToSchema } from "./api/zodToSchema.js";
@@ -8,7 +7,7 @@ export class CodexSession implements Session {
     readonly id: string;
     readonly reasoning: "low" | "medium" | "high";
     readonly token: string;
-    private history: CodexMessage[] = [];
+    private history: any[] = [];
 
     constructor(id: string, reasoning: "low" | "medium" | "high", token: string) {
         this.id = id;
@@ -30,22 +29,36 @@ export class CodexSession implements Session {
         return convertedTools;
     }
 
-    step(args: StepArguments): { cancel: () => void } {
+    step = (args: StepArguments): { cancel: () => void } => {
         const abortController = new AbortController();
-        const userMessage: CodexUserMessage = {
-            type: "message",
-            role: "user",
-            content: [
-                {
-                    type: "input_text",
-                    text: args.text,
-                }
-            ],
-        };
 
-        const input = [...this.history, userMessage];
+        const input = [...this.history];
+        const newHistoryItems: any[] = [];
 
-        let currentToolCallName: string | undefined;
+        if (args.toolResults) {
+            for (const toolResult of args.toolResults) {
+                input.push({
+                    type: 'function_call_output',
+                    call_id: toolResult.id,
+                    output: toolResult.content,
+                });
+                newHistoryItems.push({
+                    type: 'function_call_output',
+                    call_id: toolResult.id,
+                    output: toolResult.content,
+                });
+            }
+        }
+
+        if (args.text) {
+            const userMessage = {
+                type: "message",
+                role: "user",
+                content: [{ type: "input_text", text: args.text }],
+            } as CodexUserMessage;
+            input.push(userMessage);
+            newHistoryItems.push(userMessage);
+        }
 
         // Convert tools to Codex format
         let tools = args.tools ? this.convertToolsToCodexFormat(args.tools) : undefined;
@@ -85,26 +98,19 @@ export class CodexSession implements Session {
                             type: "text",
                             text: event.data.text,
                         });
-                    } else if (isSSEEvent(event, "response.output_item.added")) {
-                        const item = event.data.item as { type?: string; name?: string };
-                        if (item.type === "function_call" && item.name) {
-                            currentToolCallName = item.name;
-                        }
-                    } else if (isSSEEvent(event, "response.function_call_arguments.done")) {
-                        if (currentToolCallName) {
+                    } else if (isSSEEvent(event, "response.output_item.done")) {
+                        const item = event.data.item as CodexMessage;
+                        if (item.type === "function_call") {
                             args.callback({
                                 type: "tool_call",
-                                name: currentToolCallName,
-                                arguments: JSON.parse(event.data.arguments),
+                                id: item.call_id,
+                                name: item.name,
+                                arguments: JSON.parse(item.arguments),
                             });
-                            currentToolCallName = undefined;
                         }
                     } else if (isSSEEvent(event, "response.completed")) {
-                        const response = event.data.response as { output?: CodexMessage[] };
-                        if (response?.output) {
-                            this.history.push(userMessage);
-                            this.history.push(...response.output);
-                        }
+                        const response = event.data.response as { output: any[] };
+                        this.history = [...this.history, ...newHistoryItems, ...response.output];
                     }
                 }
             } finally {
