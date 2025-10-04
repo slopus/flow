@@ -15,6 +15,8 @@ Currently contains:
 - **Language**: TypeScript with strict mode enabled
 - **Package Manager**: Bun (use `bun` commands, not `npm` or `yarn`)
 - **Workspace**: Yarn workspaces configuration (despite using Bun)
+- **AI SDK**: Vercel AI SDK with Anthropic provider
+- **AI Model**: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929) - same model as Claude Code
 
 ## Commands
 
@@ -29,18 +31,38 @@ bun install          # Install dependencies
 bun add <package>    # Add a dependency
 ```
 
+### Testing
+```bash
+bun test             # Run tests (always use bun for testing)
+```
+
 ## Project Structure
 
 ```
 turbo/
 ├── packages/
-│   └── turbo-agent/     # Main agent package
-│       ├── sources/     # TypeScript source files
-│       │   └── index.ts # Entry point
+│   └── turbo-agent/          # Main agent package
+│       ├── sources/          # TypeScript source files
+│       │   ├── providers/    # AI model providers
+│       │   │   └── claude.ts # Claude provider configuration
+│       │   └── index.ts      # Entry point
 │       ├── package.json
 │       └── tsconfig.json
-├── package.json         # Root workspace configuration
-└── tsconfig.json        # Root TypeScript config
+├── package.json              # Root workspace configuration
+└── tsconfig.json             # Root TypeScript config
+```
+
+## AI SDK Usage
+
+The project uses Vercel's AI SDK with Anthropic's Claude models. Available providers are in `packages/turbo-agent/sources/providers/claude.ts`:
+
+- **claudeCode** - Claude Sonnet 4.5 (same as Claude Code)
+- **claudeSonnet** - Claude Sonnet 3.5
+- **claudeOpus** - Claude Opus 4
+
+Environment variable required:
+```bash
+export ANTHROPIC_API_KEY=your_api_key
 ```
 
 ## Code Standards

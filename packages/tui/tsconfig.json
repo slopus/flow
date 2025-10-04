@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "lib": [
-            "ESNext"
+            "ESNext",
         ],
         "module": "nodenext",
         "target": "esnext",
@@ -9,18 +9,13 @@
         "strict": true,
         "downlevelIteration": true,
         "skipLibCheck": true,
-        "jsx": "preserve",
+        "jsx": "react-jsx",
         "allowSyntheticDefaultImports": true,
         "forceConsistentCasingInFileNames": true,
         "allowJs": true,
         "types": [
             "bun-types" // add Bun global
         ],
-        "baseUrl": ".",
-        "paths": {
-            "@slopus/helpers": ["../helpers/sources/index.ts"],
-            "@slopus/helpers/*": ["../helpers/sources/*"]
-        }
     },
     "include": [
         "sources/**/*"

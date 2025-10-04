@@ -3,9 +3,13 @@
     "private": "true",
     "type": "module",
     "workspaces": [
-        "packages/turbo-agent"
+        "packages/turbo-agent",
+        "packages/helpers",
+        "packages/providers",
+        "packages/tui"
     ],
     "scripts": {
-        "dev": "bun run packages/turbo-agent/sources/index.ts"
+        "dev": "bun run packages/turbo-agent/sources/index.ts",
+        "format": "bunx prettier --write --"
     }
 }

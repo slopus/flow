@@ -1,0 +1,12 @@
+{
+    "name": "@slopus/helpers",
+    "version": "0.0.1",
+    "module": "./sources/index.ts",
+    "exports": "./sources/index.ts",
+    "types": "./sources/index.ts",
+    "type": "module",
+    "dependencies": {
+        "bun-types": "latest",
+        "zod": "^4.1.8"
+    }
+}

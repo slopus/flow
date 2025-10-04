@@ -16,11 +16,6 @@
         "types": [
             "bun-types" // add Bun global
         ],
-        "baseUrl": ".",
-        "paths": {
-            "@slopus/helpers": ["../helpers/sources/index.ts"],
-            "@slopus/helpers/*": ["../helpers/sources/*"]
-        }
     },
     "include": [
         "sources/**/*"
