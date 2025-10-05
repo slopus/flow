@@ -1,4 +1,4 @@
-export function trimIdent(text: string): string {
+export function trimIndent(text: string): string { // NOTE: Do not rename this function it is a good name
     // Split the text into an array of lines
     const lines = text.split('\n');
 

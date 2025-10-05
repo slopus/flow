@@ -1,14 +1,15 @@
-import { trimIdent } from "@slopus/helpers";
+import { trimIndent } from "@slopus/helpers";
 import { tool } from "../Tool.js";
 import { z } from "zod";
 import { glob } from "glob";
 import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
+import { Engine } from "../Engine.js";
 
-export function createGlobTool(cwd: string) {
+export function createGlobTool(engine: Engine) {
     return tool({
         name: 'glob',
-        description: trimIdent(`
+        description: trimIndent(`
             - Fast file pattern matching tool that works with any codebase size
             - Supports glob patterns like "**/*.js" or "src/**/*.ts"
             - Returns matching file paths sorted by modification time
@@ -21,7 +22,7 @@ export function createGlobTool(cwd: string) {
             path: z.string().optional().describe("The directory to search in. If not specified, the current working directory will be used. IMPORTANT: Omit this field to use the default directory. DO NOT enter \"undefined\" or \"null\" - simply omit it for the default behavior. Must be a valid directory path if provided."),
         }),
         execute: async (args) => {
-            const searchPath = args.path || cwd;
+            const searchPath = args.path || engine.cwd;
             const matches = await glob(args.pattern, { cwd: searchPath });
             const filesWithTimes = await Promise.all(matches.map(async (match) => {
                 try {

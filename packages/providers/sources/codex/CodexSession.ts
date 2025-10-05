@@ -2,6 +2,7 @@ import { Session } from "../types/Session.js";
 import { StepArguments, ToolDefinition } from "../types/StepArguments.js";
 import { codexRequest, isSSEEvent, CodexMessage, CodexUserMessage, CodexTool } from "./api/responses.js";
 import { zodToSchema } from "./api/zodToSchema.js";
+// import { log } from "@slopus/helpers";
 
 export class CodexSession implements Session {
     readonly id: string;
@@ -69,6 +70,7 @@ export class CodexSession implements Session {
         }
 
         (async () => {
+            // log('Current inference input', { input, tools });
             try {
                 for await (const event of codexRequest({
                     model: 'gpt-5-codex',
@@ -84,6 +86,8 @@ export class CodexSession implements Session {
                     if (abortController.signal.aborted) {
                         return;
                     }
+                    // log('Codex event', event.data.type, event.data);
+                    // log('Codex event.event field', event.event);
                     if (isSSEEvent(event, "response.reasoning_summary_text.done")) {
                         let t = event.data.text.trim();
                         if (t.startsWith('**') && t.endsWith('**')) {
@@ -110,10 +114,30 @@ export class CodexSession implements Session {
                         }
                     } else if (isSSEEvent(event, "response.completed")) {
                         const response = event.data.response as { output: any[] };
+                        // log('Codex existing history items', this.history);
+                        // log('Codex new history items', newHistoryItems);
+                        // log('Codex history output', response.output);
                         this.history = [...this.history, ...newHistoryItems, ...response.output];
+                        // log('Current codex history', this.history);
+                        // log('Response completed - sending ended event');
                     }
+                    // } else {
+                    //     log('Unprocessed codex event', event.data.type);
+                    // }
                 }
-            } finally {
+            } catch (error) {
+                if (abortController.signal.aborted) {
+                    return;
+                }
+                // Emit error event with user-facing message
+                args.callback({
+                    type: "error",
+                    message: error instanceof Error ? error.message : String(error),
+                });
+            } finally { // Always send ended event
+                if (abortController.signal.aborted) {
+                    return;
+                }
                 args.callback({
                     type: "ended",
                 });

@@ -71,7 +71,7 @@ The monorepo contains three packages:
 ### `packages/helpers` - Shared Utilities
 - `sources/async/` - Async utilities (lock, time, sync)
 - `sources/objects/` - Object utilities (deepEqual, deterministicJson)
-- `sources/text/` - Text utilities (trimIdent)
+- `sources/text/` - Text utilities (trimIndent)
 
 ## Architecture Overview
 
@@ -125,6 +125,29 @@ Custom SSE client for OpenAI's Codex API:
 - **Bun-specific**: Uses `bun-types` for Bun runtime APIs
 - **No build step**: TypeScript runs directly via Bun, no compilation needed
 
+## **⚠️ CRITICAL: Type Checking Requirements**
+
+**ALWAYS run typecheck after completing ANY task or subtask, no matter how small.**
+
+This includes:
+- After adding a new function (even if not used yet)
+- After editing existing code
+- After completing any subtask
+- Before marking any task as complete
+
+```bash
+# Run typecheck from project root (covers all packages)
+bun run typecheck
+```
+
+**WHY THIS IS CRITICAL:**
+- TypeScript strict mode catches errors immediately
+- Early detection prevents cascading type errors
+- Ensures code quality throughout development
+- Validates changes before they become problems
+
+**DO NOT skip this step. It is non-negotiable.**
+
 ## Code Standards
 
 - **Indentation**: 4 spaces (as per global CLAUDE.md)
@@ -132,3 +155,71 @@ Custom SSE client for OpenAI's Codex API:
 - **Module system**: ES modules with `"type": "module"`
 - **Exports**: Packages export via `sources/index.ts`
 - **Testing**: Test files colocated with `.test.ts` or `.spec.ts` extensions
+- **File operations**: MUST be async using Promises (never synchronous)
+
+## **CRITICAL: Utility Function Organization**
+
+**⚠️ ALL isolated utility functions MUST go in the `packages/helpers` package. DO NOT scatter utilities across other packages.**
+
+Utility functions are pure, isolated functions that compute or transform data without side effects. They belong in `packages/helpers`, organized by category:
+
+### What Goes in Helpers:
+- **Text utilities**: Split text into lines, parse formats, detect patterns, trim/pad strings
+- **File utilities**: Check file extensions, validate paths, parse file names
+- **Data transformations**: Format numbers, convert types, manipulate arrays/objects
+- **Validation**: Check conditions, validate formats, type guards
+- **Math/logic**: Calculations, comparisons, algorithmic operations
+
+### File Structure Requirements:
+- **One function per file**: Each file exports exactly one function
+- **Matching names**: File name MUST match function name exactly
+- **Category prefixes**: Function and file names MUST start with category prefix for editor sorting
+- **Unit tests**: Each function MUST have a `.spec.ts` test file alongside it
+
+### Naming Convention:
+```
+Category prefix + descriptive name (camelCase)
+
+Examples:
+- text + SplitLines = textSplitLines
+- text + DetectLanguage = textDetectLanguage
+- path + Validate = pathValidate
+- path + Extension = pathExtension
+- array + Unique = arrayUnique
+- number + Format = numberFormat
+```
+
+### File Organization Examples:
+```typescript
+// ✅ CORRECT - One function per file with matching names
+packages/helpers/sources/text/textSplitLines.ts
+packages/helpers/sources/text/textSplitLines.spec.ts
+packages/helpers/sources/text/textDetectLanguage.ts
+packages/helpers/sources/text/textDetectLanguage.spec.ts
+
+packages/helpers/sources/path/pathValidate.ts
+packages/helpers/sources/path/pathValidate.spec.ts
+packages/helpers/sources/path/pathExtension.ts
+packages/helpers/sources/path/pathExtension.spec.ts
+
+// ❌ WRONG - Multiple functions in one file
+packages/helpers/sources/text/utils.ts  // Contains multiple functions
+
+// ❌ WRONG - No category prefix
+packages/helpers/sources/text/splitLines.ts  // Missing "text" prefix
+
+// ❌ WRONG - File name doesn't match function name
+packages/helpers/sources/text/split.ts  // exports textSplitLines()
+
+// ❌ WRONG - Scattered in other packages
+packages/flow/sources/utils/textUtils.ts
+packages/providers/sources/helpers/fileHelpers.ts
+```
+
+### What DOESN'T Go in Helpers:
+- Business logic tied to specific domains (Engine, Session, Provider)
+- Stateful operations (class methods, hooks, stores)
+- I/O operations (reading files, network requests, database queries)
+- Framework-specific code (React components, Ink UI elements)
+
+**Before creating ANY utility function in `packages/flow` or `packages/providers`, ask: "Is this an isolated computation?" If yes, it belongs in `packages/helpers` with the proper naming and structure.**

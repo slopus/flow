@@ -21,7 +21,7 @@ export const ComposerView = React.memo((props: { engine: Engine }) => {
         if (event.type === 'command') {
             switch (event.command) {
                 case 'Enter':
-                    const text = props.engine.store().composerSubmit();
+                    const text = props.engine.store.getState().composerSubmit();
                     if (text) {
                         props.engine.send(text);
                     }

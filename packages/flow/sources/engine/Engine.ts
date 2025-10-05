@@ -1,11 +1,15 @@
 import { ModelProvider, ModelDescriptor, Session } from "@slopus/providers";
 import { createEngineStore } from "../store.js";
 import { Tool } from "./Tool.js";
+import { FileManager } from "./FileManager.js";
+import { log } from "@slopus/helpers";
 
 export class Engine {
 
     readonly models = new Map<string, { descriptor: ModelDescriptor, provider: ModelProvider, priority: number }>();
+    readonly fileManager = new FileManager();
 
+    #cwd: string;
     #currentModel: string;
     #currentSession: Session;
     #store: ReturnType<typeof createEngineStore>;
@@ -19,7 +23,8 @@ export class Engine {
     #abort: AbortController | null = null;
     #tools: Map<string, Tool<any, any>> = new Map();
 
-    constructor(providers: ModelProvider[], tools: Tool<any, any>[]) {
+    constructor(cwd: string, providers: ModelProvider[]) {
+        this.#cwd = cwd;
 
         // Build models map
         let priority = 0;
@@ -43,7 +48,11 @@ export class Engine {
         this.#store = createEngineStore(this.model);
 
         // Set tools
-        this.#tools = new Map(tools.map(tool => [tool.name, tool]));
+        this.#tools = new Map();
+    }
+
+    addTool(tool: Tool<any, any>) {
+        this.#tools.set(tool.name, tool);
     }
 
     get model() {
@@ -56,6 +65,10 @@ export class Engine {
 
     get store() {
         return this.#store;
+    }
+
+    get cwd() {
+        return this.#cwd;
     }
 
     send = (text: string) => {
@@ -83,13 +96,18 @@ export class Engine {
             while (this.#pendingToolCalls.length > 0 && !abort.signal.aborted) {
                 const toolCall = this.#pendingToolCalls.shift();
                 const tool = this.#tools.get(toolCall!.name);
+
                 if (!tool) {
                     if (abort.signal.aborted) {
                         return;
                     }
+                    log(`[TOOL] ${toolCall!.name} - Tool not found`);
                     this.#pendingToolCallsResults.push({ id: toolCall!.id, content: `Tool ${toolCall!.name} not found`, error: true });
                     continue;
                 }
+
+                const startTime = Date.now();
+                log(`[TOOL START] ${toolCall!.name}`, { id: toolCall!.id, arguments: toolCall!.arguments });
 
                 try {
                     const result = await tool.execute(toolCall!.arguments);
@@ -97,12 +115,35 @@ export class Engine {
                         return;
                     }
                     const toLLmResult = tool.toLLM(result);
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+
+                    log(`[TOOL END] ${toolCall!.name}`, {
+                        id: toolCall!.id,
+                        duration: `${duration}ms`,
+                        resultPreview: typeof result === 'string' ? result.substring(0, 100) : JSON.stringify(result).substring(0, 100)
+                    });
+                    log(`[TOOL LLM OUTPUT] ${toolCall!.name}`, {
+                        id: toolCall!.id,
+                        output: toLLmResult.substring(0, 200) + (toLLmResult.length > 200 ? '...' : '')
+                    });
+
                     this.#pendingToolCallsResults.push({ id: toolCall!.id, content: toLLmResult, error: false });
                 } catch (error) {
                     if (abort.signal.aborted) {
                         return;
                     }
-                    this.#pendingToolCallsResults.push({ id: toolCall!.id, content: error instanceof Error ? error.message : 'Error: ' + String(error), error: true });
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+                    const errorMessage = error instanceof Error ? error.message : 'Error: ' + String(error);
+
+                    log(`[TOOL ERROR] ${toolCall!.name}`, {
+                        id: toolCall!.id,
+                        duration: `${duration}ms`,
+                        error: errorMessage
+                    });
+
+                    this.#pendingToolCallsResults.push({ id: toolCall!.id, content: errorMessage, error: true });
                 }
             }
 
@@ -131,6 +172,7 @@ export class Engine {
                     if (abort.signal.aborted) {
                         return;
                     }
+                    log(`[INFERENCE]`, update);
                     if (update.type === 'text') {
                         this.#store.getState().appendHistory({ type: 'assistant', text: update.text });
                     } else if (update.type === 'tool_call') {
@@ -138,6 +180,8 @@ export class Engine {
                         this.#store.getState().appendHistory({ type: 'tool_call', name: update.name, arguments: update.arguments });
                     } else if (update.type === 'reasoning') {
                         this.#store.getState().setThinking(update.text);
+                    } else if (update.type === 'error') {
+                        this.#store.getState().appendHistory({ type: 'error', message: update.message });
                     } else if (update.type === 'ended') {
                         // this.#store.getState().appendHistory({ type: 'debug', text: 'Ended ' + this.#pending.length + ' ' + this.#pendingToolCalls.length });
                         this.#abort = null;

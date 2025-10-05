@@ -338,6 +338,8 @@ async function* parseSSE(stream: ReadableStream<Uint8Array>): AsyncGenerator<SSE
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let eventName: string | undefined;
+    let dataString: string | undefined;
 
     try {
         while (true) {
@@ -347,9 +349,6 @@ async function* parseSSE(stream: ReadableStream<Uint8Array>): AsyncGenerator<SSE
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
-
-            let eventName: string | undefined;
-            let dataString: string | undefined;
 
             for (const line of lines) {
                 if (line.trim() === "") {
@@ -457,9 +456,22 @@ export async function* codexRequest(
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(
-            `ChatGPT Codex API error: ${response.status} ${response.statusText}\n${errorText}`
-        );
+
+        // Try to parse JSON error response and extract user-facing message
+        try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.error?.message) {
+                throw new Error(errorJson.error.message);
+            }
+        } catch (parseError) {
+            // If it's already an Error we threw, re-throw it
+            if (parseError instanceof Error && parseError.message !== errorText) {
+                throw parseError;
+            }
+        }
+
+        // Fallback to generic error
+        throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
 
     if (!response.body) {

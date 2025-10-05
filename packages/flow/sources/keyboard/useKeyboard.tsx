@@ -1,6 +1,6 @@
 import { useInput } from "ink";
 import * as React from "react";
-import { log } from "../log.js";
+import { log } from "../../../helpers/sources/log.js";
 
 export type KeyboardEvent =
     | { type: 'text', text: string }
@@ -58,7 +58,7 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, [emit]);
 
     useInput((input, key) => {
-        log('useInput received:', { input, key });
+        // log('useInput received:', { input, key });
 
         // Ctrl+C
         if (key.ctrl && input === 'c') {

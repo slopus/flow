@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 import * as React from "react";
-import { wrapText } from "@slopus/helpers";
+import { textWrap } from "@slopus/helpers";
 import { useKeyboard } from "../../keyboard/useKeyboard.jsx";
 import { Engine } from "../../engine/Engine.js";
 
@@ -25,7 +25,7 @@ export const ComposerInputView = React.memo<ComposerInputProps>(({
         }
 
         // Wrap text to terminal width
-        const wrapped = wrapText(text, contentWidth, { trim: false, wordWrap: true });
+        const wrapped = textWrap(text, contentWidth, { trim: false, wordWrap: true });
         const wrappedLines = wrapped.split('\n');
 
         // Find cursor position in wrapped text
@@ -134,7 +134,7 @@ export const ComposerInputView = React.memo<ComposerInputProps>(({
                         <Text color="gray">{placeholder.slice(1)}</Text>
                     </Text>
                 ) : (
-                    lines.map((line, rowIdx) => {
+                    lines.map((line: string, rowIdx: number) => {
                         const isOnCursorLine = rowIdx === cursorRow;
 
                         // Handle empty lines

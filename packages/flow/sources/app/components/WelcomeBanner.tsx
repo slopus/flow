@@ -1,9 +1,9 @@
-import { trimIdent } from "@slopus/helpers";
+import { trimIndent } from "@slopus/helpers";
 import { Box, Text } from "ink";
 import * as React from "react";
 import { theme } from "../theme.js";
 
-const text = trimIdent(`
+const text = trimIndent(`
 ░█░█░█▀█░█▀█░█▀█░█░█
 ░█▀█░█▀█░█▀▀░█▀▀░░█░
 ░▀░▀░▀░▀░▀░░░▀░░░░▀░

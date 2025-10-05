@@ -37,6 +37,9 @@ export type HistoryRecord = {
     name: string,
     arguments: any;
 } | {
+    type: 'error',
+    message: string;
+} | {
     type: 'debug',
     text: string;
 };

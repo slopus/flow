@@ -32,6 +32,13 @@ export const HistoryItem = React.memo((props: {
                 <Text>{props.data.name} {JSON.stringify(props.data.arguments)}</Text>
             </Box>
         );
+    } else if (props.data.type === 'error') {
+        return (
+            <Box flexDirection="row">
+                <Text color="red">{'✖ '}</Text>
+                <Text color="red">{props.data.message}</Text>
+            </Box>
+        );
     } else if (props.data.type === 'debug') {
         return (
             <Box flexDirection="row">

@@ -3,6 +3,9 @@
     "version": "0.0.1",
     "module": "index.ts",
     "type": "module",
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
     "dependencies": {
         "@ai-sdk/anthropic": "^2.0.22",
         "@anthropic-ai/claude-code": "^2.0.5",
@@ -10,6 +13,7 @@
         "@slopus/providers": "0.0.1",
         "ai": "^5.0.59",
         "bun-types": "latest",
+        "diff": "^8.0.2",
         "glob": "^11.0.3",
         "ink": "^6.3.1",
         "ink-spinner": "^5.0.0",
@@ -17,5 +21,8 @@
         "react": "^19.1.0",
         "zod": "^4.1.8",
         "zustand": "^5.0.8"
+    },
+    "devDependencies": {
+        "typescript": "^5.9.3"
     }
 }

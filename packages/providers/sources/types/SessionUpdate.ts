@@ -10,5 +10,8 @@ export type SessionUpdate = {
     name: string,
     arguments: any
 } | {
+    type: 'error',
+    message: string
+} | {
     type: 'ended'
 }

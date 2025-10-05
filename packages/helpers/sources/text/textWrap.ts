@@ -1,6 +1,6 @@
 import stringWidth from 'string-width';
 
-export interface WrapTextOptions {
+export interface TextWrapOptions {
     /**
      * Whether to trim whitespace (default: true)
      */
@@ -29,10 +29,10 @@ export interface WrapTextOptions {
  * @param options - Wrapping options
  * @returns Wrapped text with newlines
  */
-export function wrapText(
+export function textWrap(
     text: string,
     columns: number,
-    options: WrapTextOptions = {}
+    options: TextWrapOptions = {}
 ): string {
     return String(text)
         .normalize()
@@ -61,7 +61,7 @@ function stripAnsi(text: string): string {
 function wrapLine(
     line: string,
     columns: number,
-    options: WrapTextOptions = {}
+    options: TextWrapOptions = {}
 ): string {
     const { trim = true, hard = false, wordWrap = true } = options;
 

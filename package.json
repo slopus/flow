@@ -9,6 +9,7 @@
     ],
     "scripts": {
         "dev": "DEBUG=1 bun run packages/flow/sources/index.ts",
+        "typecheck": "bun run --filter '*/*' typecheck",
         "format": "bunx prettier --write --"
     }
 }

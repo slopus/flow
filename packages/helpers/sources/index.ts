@@ -1,8 +1,13 @@
-export { trimIdent } from './text/trimIdent.js';
-export { wrapText } from './text/wrapText.js';
-export type { WrapTextOptions } from './text/wrapText.js';
+export { trimIndent } from './text/trimIndent.js';
+export { textWrap } from './text/textWrap.js';
+export type { TextWrapOptions } from './text/textWrap.js';
+export { textDetectLineEnding } from './text/textDetectLineEnding.js';
+export { textNormalizeLineEnding } from './text/textNormalizeLineEnding.js';
+export { textGetDefaultLineEnding } from './text/textGetDefaultLineEnding.js';
+export { textDetectEncoding } from './text/textDetectEncoding.js';
 export { deterministicStringify, deepEqual, objectKey, hashObject } from './objects/deterministicJson.js';
 export type { DeterministicJsonOptions } from './objects/deterministicJson.js';
 export { AsyncLock } from './async/lock.js';
 export { InvalidateSync, ValueSync } from './async/sync.js';
 export { backoff, delay } from './async/time.js';
+export { log } from './log.js';
