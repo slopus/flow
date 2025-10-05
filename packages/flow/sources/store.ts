@@ -1,12 +1,19 @@
 import { ModelDescriptor } from "@slopus/providers";
 import { create } from "zustand";
 
+export type PendingPermission = {
+    id: string;
+    toolName: string;
+    parameters: any;
+};
+
 export type UIStore = {
     model: string;
     thinking: string | null;
     history: HistoryRecord[];
     composer: ComposerState;
     exitRequested: string | null;
+    pendingPermission: PendingPermission | null;
     setModel: (model: ModelDescriptor) => void;
     setThinking: (thinking: string | boolean) => void;
     appendHistory: (record: HistoryRecord) => void;
@@ -19,6 +26,9 @@ export type UIStore = {
     composerReset: () => void;
     composerInsertNewline: () => void;
     requestExit: (key: 'Ctrl+C' | 'Ctrl+D') => boolean;
+    setPendingPermission: (permission: PendingPermission | null) => void;
+    approvePermission: () => void;
+    denyPermission: () => void;
 }
 
 export type ComposerState = {
@@ -44,8 +54,9 @@ export type HistoryRecord = {
     text: string;
 };
 
-export function createEngineStore(model: ModelDescriptor) {
+export function createEngineStore(model: ModelDescriptor, permissionCallbackRef?: { current: ((approved: boolean) => void) | null }) {
     let exitTimer: Timer | null = null;
+
     return create<UIStore>((set, get) => ({
         model: model.displayName,
         thinking: null,
@@ -55,6 +66,7 @@ export function createEngineStore(model: ModelDescriptor) {
             cursor: 0,
         },
         exitRequested: null,
+        pendingPermission: null,
         setModel: (model: ModelDescriptor) => set({ model: model.displayName }),
         setThinking: (thinking: string | boolean) => set(state => ({
             thinking: typeof thinking === 'string' ? thinking : (
@@ -176,6 +188,19 @@ export function createEngineStore(model: ModelDescriptor) {
                     exitTimer = null;
                 }, 1000);
                 return false;
+            }
+        },
+        setPendingPermission: (permission: PendingPermission | null) => set({ pendingPermission: permission }),
+        approvePermission: () => {
+            const currentPermission = get().pendingPermission;
+            if (currentPermission && permissionCallbackRef) {
+                permissionCallbackRef.current?.(true);
+            }
+        },
+        denyPermission: () => {
+            const currentPermission = get().pendingPermission;
+            if (currentPermission && permissionCallbackRef) {
+                permissionCallbackRef.current?.(false);
             }
         },
     }));

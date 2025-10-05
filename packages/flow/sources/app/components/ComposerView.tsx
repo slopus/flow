@@ -38,7 +38,7 @@ export const ComposerView = React.memo((props: { engine: Engine }) => {
 
     return (
         <Box flexDirection="column">
-            <Box flexDirection="row" height={1} marginBottom={1}>
+            <Box flexDirection="row" height={1}>
                 <Box flexDirection="row" height={1} flexGrow={1} flexBasis={0}>
                     <Text>Mode: {mode}</Text>
                 </Box>

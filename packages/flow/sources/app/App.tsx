@@ -3,6 +3,7 @@ import React from "react";
 import { WelcomeBanner } from "./components/WelcomeBanner.js";
 import { HistoryItem } from "./components/HistoryItem.js";
 import { Thinking } from "./components/Thinking.jsx";
+import { PermissionPrompt } from "./components/PermissionPrompt.jsx";
 import { Engine } from "sources/engine/Engine.js";
 import { useKeyboard } from "sources/keyboard/useKeyboard.js";
 import { ComposerView } from "./components/ComposerView.jsx";
@@ -12,9 +13,15 @@ export const App = React.memo((props: { engine: Engine }) => {
     const store = props.engine.store();
     const [shouldExit, setShouldExit] = React.useState(false);
 
-    // Handle global keyboard commands
+    // Handle global keyboard commands (only when no permission is pending)
     useKeyboard(React.useCallback((event) => {
         // log('keyboard event', event);
+
+        // Skip if there's a pending permission (handled by PermissionPrompt)
+        if (store.pendingPermission) {
+            return;
+        }
+
         if (event.type === 'command') {
             switch (event.command) {
                 case 'Enter':
@@ -61,7 +68,11 @@ export const App = React.memo((props: { engine: Engine }) => {
                     <Thinking text={store.thinking} />
                 </Box>
             )}
-            {!shouldExit && <ComposerView engine={props.engine} />}
+            {!shouldExit && store.pendingPermission ? (
+                <PermissionPrompt permission={store.pendingPermission} engine={props.engine} />
+            ) : (
+                !shouldExit && <ComposerView engine={props.engine} />
+            )}
         </Box>
     )
 });

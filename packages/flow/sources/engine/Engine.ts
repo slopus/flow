@@ -1,18 +1,21 @@
 import { ModelProvider, ModelDescriptor, Session } from "@slopus/providers";
-import { createEngineStore } from "../store.js";
+import { createEngineStore, PendingPermission } from "../store.js";
 import { Tool } from "./Tool.js";
 import { FileManager } from "./FileManager.js";
+import { PermissionManager } from "./PermissionManager.js";
 import { log } from "@slopus/helpers";
 
 export class Engine {
 
     readonly models = new Map<string, { descriptor: ModelDescriptor, provider: ModelProvider, priority: number }>();
     readonly fileManager = new FileManager();
+    readonly permissionManager: PermissionManager;
 
     #cwd: string;
     #currentModel: string;
     #currentSession: Session;
     #store: ReturnType<typeof createEngineStore>;
+    #permissionCallbackRef: { current: ((approved: boolean) => void) | null } = { current: null };
     #pending: string[] = [];
     #pendingToolCalls: { id: string, name: string, arguments: any }[] = [];
     #pendingToolCallsResults: {
@@ -44,8 +47,18 @@ export class Engine {
         // Create session
         this.#currentSession = this.models.get(this.#currentModel)!.provider.createSession(this.#currentModel);
 
+        // Create permission manager
+        this.permissionManager = new PermissionManager((permission) => {
+            const pendingPermission: PendingPermission | null = permission ? {
+                id: permission.id,
+                toolName: permission.toolName,
+                parameters: permission.parameters,
+            } : null;
+            this.#store.getState().setPendingPermission(pendingPermission);
+        });
+
         // Create store
-        this.#store = createEngineStore(this.model);
+        this.#store = createEngineStore(this.model, this.#permissionCallbackRef);
 
         // Set tools
         this.#tools = new Map();
@@ -105,6 +118,21 @@ export class Engine {
                     this.#pendingToolCallsResults.push({ id: toolCall!.id, content: `Tool ${toolCall!.name} not found`, error: true });
                     continue;
                 }
+
+                // Request permission
+                log(`[PERMISSION] Requesting permission for ${toolCall!.name}`);
+                const approved = await new Promise<boolean>((resolve) => {
+                    this.#permissionCallbackRef.current = resolve;
+                    this.permissionManager.requestPermission(toolCall!.name, toolCall!.arguments).then(resolve);
+                });
+
+                if (!approved) {
+                    log(`[PERMISSION] Permission denied for ${toolCall!.name}`);
+                    this.#pendingToolCallsResults.push({ id: toolCall!.id, content: 'Permission denied by user', error: true });
+                    continue;
+                }
+
+                log(`[PERMISSION] Permission granted for ${toolCall!.name}`);
 
                 const startTime = Date.now();
                 log(`[TOOL START] ${toolCall!.name}`, { id: toolCall!.id, arguments: toolCall!.arguments });
