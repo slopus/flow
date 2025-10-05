@@ -8,7 +8,7 @@
         "packages/providers"
     ],
     "scripts": {
-        "dev": "bun run packages/flow/sources/index.ts",
+        "dev": "DEBUG=1 bun run packages/flow/sources/index.ts",
         "format": "bunx prettier --write --"
     }
 }

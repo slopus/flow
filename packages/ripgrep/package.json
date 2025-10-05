@@ -1,0 +1,18 @@
+{
+    "name": "@slopus/ripgrep",
+    "version": "0.0.1",
+    "module": "./sources/index.ts",
+    "exports": "./sources/index.ts",
+    "types": "./sources/index.ts",
+    "type": "module",
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "bun-types": "latest",
+        "zod": "^4.1.8"
+    },
+    "devDependencies": {
+        "typescript": "^5.9.3"
+    }
+}

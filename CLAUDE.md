@@ -4,31 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Turbo** is an early-stage monorepo project using Bun as the runtime. The project is currently in transition - the git history shows removal of Tauri (Rust) and React frontend components, with the codebase being restructured.
-
-Currently contains:
-- **turbo-agent** - A minimal package in `packages/turbo-agent/` with a single TypeScript entry point
+**Flow** is an experimental terminal-based AI agent interface built with Bun and React (via Ink). The project enables conversational interaction with OpenAI's GPT-5 Codex models through a custom provider implementation, featuring real-time streaming responses, tool calling, and reasoning summaries.
 
 ## Technology Stack
 
-- **Runtime**: Bun (not Node.js)
+- **Runtime**: Bun (not Node.js) - all commands use `bun`
 - **Language**: TypeScript with strict mode enabled
-- **Package Manager**: Bun (use `bun` commands, not `npm` or `yarn`)
-- **Workspace**: Yarn workspaces configuration (despite using Bun)
-- **AI SDK**: Vercel AI SDK with Anthropic provider
-- **AI Model**: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929) - same model as Claude Code
+- **UI**: React via Ink (terminal UI rendering)
+- **State Management**: Zustand for reactive UI state
+- **AI Integration**: Custom OpenAI Codex API client with SSE streaming
+- **Schema Validation**: Zod v4 for runtime type validation
+- **Workspace**: Bun workspaces with three packages
 
 ## Commands
 
 ### Development
 ```bash
-bun run dev          # Run the turbo-agent entry point (packages/turbo-agent/sources/index.ts)
+bun run dev          # Start the Flow terminal UI
 ```
 
-### Package Management
+### Type Checking
 ```bash
-bun install          # Install dependencies
-bun add <package>    # Add a dependency
+# In packages/providers/
+bun run typecheck    # TypeScript type checking (no build output)
 ```
 
 ### Testing
@@ -36,45 +34,101 @@ bun add <package>    # Add a dependency
 bun test             # Run tests (always use bun for testing)
 ```
 
+### Formatting
+```bash
+bun run format       # Format code with Prettier
+```
+
 ## Project Structure
 
-```
-turbo/
-├── packages/
-│   └── turbo-agent/          # Main agent package
-│       ├── sources/          # TypeScript source files
-│       │   ├── providers/    # AI model providers
-│       │   │   └── claude.ts # Claude provider configuration
-│       │   └── index.ts      # Entry point
-│       ├── package.json
-│       └── tsconfig.json
-├── package.json              # Root workspace configuration
-└── tsconfig.json             # Root TypeScript config
-```
+The monorepo contains three packages:
 
-## AI SDK Usage
+### `packages/flow` - Main Terminal UI Application
+- **Entry point**: `sources/index.ts` (requires `TEST_OPENAI_TOKEN` env var)
+- **Core components**:
+  - `sources/engine/Engine.ts` - Main orchestration engine managing models, sessions, and tools
+  - `sources/app/App.tsx` - Root Ink component with history, thinking indicator, and composer
+  - `sources/store.ts` - Zustand store for UI state (history, thinking status, model info)
+- **UI components** (`sources/app/components/`):
+  - `Composer.tsx` - Input field for user messages
+  - `HistoryItem.tsx` - Renders user/assistant/tool call messages
+  - `Thinking.tsx` - Animated thinking indicator with reasoning text
+  - `WelcomeBanner.tsx` - Startup banner
+  - `MarkdownView.tsx` - Markdown rendering in terminal
 
-The project uses Vercel's AI SDK with Anthropic's Claude models. Available providers are in `packages/turbo-agent/sources/providers/claude.ts`:
+### `packages/providers` - AI Model Provider Abstraction
+- **Core abstraction**:
+  - `sources/types/ModelProvider.ts` - Provider interface for multi-model support
+  - `sources/types/Session.ts` - Session interface for conversational state
+  - `sources/types/StepArguments.ts` - Tool definitions and step parameters
+- **Codex implementation** (`sources/codex/`):
+  - `CodexProvider.ts` - Provider for GPT-5 Codex (high/medium/low reasoning tiers)
+  - `CodexSession.ts` - Session implementation with SSE streaming
+  - `api/responses.ts` - SSE parsing, request handling, and comprehensive Zod schemas
+  - `api/zodToSchema.ts` - Converts Zod schemas to JSON Schema for tool parameters
+  - `api/instructions.ts` - System instructions sent to Codex API
 
-- **claudeCode** - Claude Sonnet 4.5 (same as Claude Code)
-- **claudeSonnet** - Claude Sonnet 3.5
-- **claudeOpus** - Claude Opus 4
+### `packages/helpers` - Shared Utilities
+- `sources/async/` - Async utilities (lock, time, sync)
+- `sources/objects/` - Object utilities (deepEqual, deterministicJson)
+- `sources/text/` - Text utilities (trimIdent)
 
-Environment variable required:
-```bash
-export ANTHROPIC_API_KEY=your_api_key
-```
+## Architecture Overview
+
+### Engine System
+The `Engine` class is the core orchestrator:
+- **Model Management**: Maintains a priority-sorted map of available models from providers
+- **Session Management**: Creates and manages sessions for the current model
+- **Tool Execution**: Executes tool calls, handles results, and queues them for LLM
+- **State Synchronization**: Updates Zustand store with history and thinking status
+- **Async Queue**: Processes pending messages and tool calls sequentially
+
+### Session Flow
+1. User sends message via `Engine.send(text)`
+2. Message added to pending queue, engine starts thinking
+3. `Session.step()` streams SSE events from Codex API
+4. Events update UI state: text deltas, tool calls, reasoning summaries
+5. Tool calls queued for execution, results fed back into next step
+6. Engine continues until no pending messages/tool calls remain
+
+### Tool System
+Tools follow a generic interface defined in `sources/engine/Tool.ts`:
+- **Type-safe**: Zod schemas for parameters and return types
+- **Async execution**: Tools return promises for their results
+- **LLM formatting**: `toLLM()` converts results to strings for the model
+- **Conditional**: `isEnabled()` allows runtime tool availability checks
+
+Current tools:
+- `Glob.ts` - File pattern matching tool
+
+### Provider Architecture
+Providers abstract different AI model backends:
+- **Multi-model support**: Each provider can expose multiple models
+- **Unified interface**: All models accessed through same `Session.step()` API
+- **Streaming**: Callback-based SSE event handling for real-time updates
+- **Tool calling**: Providers handle tool definition conversion (Zod → JSON Schema)
+
+### Codex API Integration
+Custom SSE client for OpenAI's Codex API:
+- **Authentication**: JWT token with account ID extraction
+- **Streaming**: Full SSE event parsing with Zod validation
+- **Reasoning**: Captures encrypted reasoning content and summaries
+- **Web search**: Integrated web search tool support
+- **Tool calling**: Function call orchestration with arguments streaming
+
+## Development Notes
+
+- **Source directories**: Use `sources/` not `src/` (consistent across all packages)
+- **Module resolution**: ESNext with `nodenext` module resolution
+- **React in terminal**: Ink uses React 19 for declarative terminal UIs
+- **Env variables**: `TEST_OPENAI_TOKEN` required for Codex API access
+- **Bun-specific**: Uses `bun-types` for Bun runtime APIs
+- **No build step**: TypeScript runs directly via Bun, no compilation needed
 
 ## Code Standards
 
 - **Indentation**: 4 spaces (as per global CLAUDE.md)
 - **TypeScript**: Strict mode enabled, no `any` types
-- **Module System**: ES modules with `"type": "module"`
-- **Target**: ESNext with nodenext module resolution
-
-## Development Notes
-
-- The project uses Bun-specific types via `bun-types` package
-- Source files are in `sources/` directories (not `src/`)
-- TypeScript configs include `jsx: preserve` even though no JSX currently exists
-- Git status shows this is a fresh restructure with many deleted Tauri/React files
+- **Module system**: ES modules with `"type": "module"`
+- **Exports**: Packages export via `sources/index.ts`
+- **Testing**: Test files colocated with `.test.ts` or `.spec.ts` extensions

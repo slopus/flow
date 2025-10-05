@@ -1,21 +1,48 @@
-import { Box, Text } from "ink";
+import { Box } from "ink";
 import React from "react";
 import { WelcomeBanner } from "./components/WelcomeBanner.js";
-import { Composer } from "./components/Composer.js";
 import { HistoryItem } from "./components/HistoryItem.js";
 import { Thinking } from "./components/Thinking.jsx";
 import { Engine } from "sources/engine/Engine.js";
+import { useKeyboard } from "sources/keyboard/useKeyboard.js";
+import { ComposerView } from "./components/ComposerView.jsx";
+// import { log } from "sources/log.js";
 
 export const App = React.memo((props: { engine: Engine }) => {
     const store = props.engine.store();
-    const [mode, setMode] = React.useState<'read-only' | 'default'>('default');
-    const [thinking, setThinking] = React.useState<'low' | 'medium' | 'high' | 'auto'>('auto');
-    const nextMode = React.useCallback(() => {
-        setMode(mode === 'read-only' ? 'default' : 'read-only');
-    }, [mode]);
-    const nextThinking = React.useCallback(() => {
-        setThinking(thinking === 'auto' ? 'low' : thinking === 'low' ? 'medium' : thinking === 'medium' ? 'high' : 'auto');
-    }, [thinking]);
+    const [shouldExit, setShouldExit] = React.useState(false);
+
+    // Handle global keyboard commands
+    useKeyboard(React.useCallback((event) => {
+        // log('keyboard event', event);
+        if (event.type === 'command') {
+            switch (event.command) {
+                case 'Enter':
+                    const text = store.composerSubmit();
+                    if (text) {
+                        props.engine.send(text);
+                    }
+                    break;
+                case 'Ctrl+C':
+                    if (store.requestExit('Ctrl+C')) {
+                        setShouldExit(true);
+                    }
+                    break;
+                case 'Ctrl+D':
+                    if (store.requestExit('Ctrl+D')) {
+                        setShouldExit(true);
+                    }
+                    break;
+            }
+        }
+    }, [store, props.engine]));
+
+    // Graceful exit
+    React.useEffect(() => {
+        if (shouldExit) {
+            process.exit(0);
+        }
+    }, [shouldExit]);
 
     return (
         <Box flexDirection="column">
@@ -29,26 +56,12 @@ export const App = React.memo((props: { engine: Engine }) => {
                     </Box>
                 ))}
             </Box>
-            {store.thinking && (
+            {!shouldExit && store.thinking && (
                 <Box flexDirection="row" height={1} marginBottom={1}>
                     <Thinking text={store.thinking} />
                 </Box>
             )}
-
-            <Composer
-                placeholder="Type your message..."
-                onSubmit={props.engine.send}
-                onShiftTab={nextMode}
-                onTab={nextThinking}
-            />
-            <Box flexDirection="row" height={1} marginBottom={1}>
-                <Box flexDirection="row" height={1} flexGrow={1} flexBasis={0}>
-                    <Text>Mode: {mode}</Text>
-                </Box>
-                <Box flexDirection="row" height={1}>
-                    <Text>{props.engine.model.displayName} {thinking}</Text>
-                </Box>
-            </Box>
+            {!shouldExit && <ComposerView engine={props.engine} />}
         </Box>
     )
 });
