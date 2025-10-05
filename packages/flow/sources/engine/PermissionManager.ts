@@ -4,6 +4,7 @@ export type PendingPermission = {
     id: string;
     toolName: string;
     parameters: any;
+    tool?: any; // Tool<any, any> but we avoid the import
     resolve: (approved: boolean) => void;
 };
 
@@ -16,7 +17,7 @@ export class PermissionManager {
         this.onPermissionChange = onPermissionChange;
     }
 
-    async requestPermission(toolName: string, parameters: any): Promise<boolean> {
+    async requestPermission(toolName: string, parameters: any, tool?: any): Promise<boolean> {
         return this.lock.inLock(async () => {
             const id = Math.random().toString(36).substring(7);
 
@@ -25,6 +26,7 @@ export class PermissionManager {
                     id,
                     toolName,
                     parameters,
+                    tool,
                     resolve,
                 };
 

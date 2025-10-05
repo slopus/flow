@@ -5,6 +5,8 @@ import { glob } from "glob";
 import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Engine } from "../Engine.js";
+import React from "react";
+import { Text, Box } from "ink";
 
 export function createGlobTool(engine: Engine) {
     return tool({
@@ -35,5 +37,22 @@ export function createGlobTool(engine: Engine) {
             filesWithTimes.sort((a, b) => b.mtime - a.mtime);
             return filesWithTimes.map((item) => item.match);
         },
+        formatTitle: (args) => {
+            return <Text bold>Find files</Text>;
+        },
+        formatQuestion: (args) => {
+            return (
+                <Box flexDirection="column">
+                    <Box>
+                        <Text>Pattern: <Text bold>{args.pattern}</Text></Text>
+                    </Box>
+                    {args.path && (
+                        <Box>
+                            <Text dimColor>In: {args.path}</Text>
+                        </Box>
+                    )}
+                </Box>
+            );
+        }
     })
 }

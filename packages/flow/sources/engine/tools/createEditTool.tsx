@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { tool } from '../Tool.js';
 import { FileManager } from '../FileManager.js';
+import React from 'react';
+import { Text, Box } from 'ink';
 
 export function createEditTool(fileManager: FileManager) {
     return tool({
@@ -33,6 +35,38 @@ export function createEditTool(fileManager: FileManager) {
                 return `The file ${result.filePath} has been edited. Here's the result:\n${snippet}`;
             }
             return `File edited successfully: ${result.filePath}`;
+        },
+        formatTitle: (args) => {
+            return <Text bold>Edit file</Text>;
+        },
+        formatQuestion: (args) => {
+            const MAX_PREVIEW = 100;
+            const oldPreview = args.old_string.length > MAX_PREVIEW
+                ? args.old_string.substring(0, MAX_PREVIEW) + '...'
+                : args.old_string;
+            const newPreview = args.new_string.length > MAX_PREVIEW
+                ? args.new_string.substring(0, MAX_PREVIEW) + '...'
+                : args.new_string;
+
+            return (
+                <Box flexDirection="column">
+                    <Box marginBottom={1}>
+                        <Text bold>{args.file_path}</Text>
+                    </Box>
+                    <Box flexDirection="column" marginBottom={1}>
+                        <Text dimColor>Replace{args.replace_all ? ' all occurrences' : ''}:</Text>
+                        <Box flexDirection="column" borderStyle="round" borderColor="red" paddingX={1}>
+                            <Text color="red">{oldPreview}</Text>
+                        </Box>
+                    </Box>
+                    <Box flexDirection="column">
+                        <Text dimColor>With:</Text>
+                        <Box flexDirection="column" borderStyle="round" borderColor="green" paddingX={1}>
+                            <Text color="green">{newPreview}</Text>
+                        </Box>
+                    </Box>
+                </Box>
+            );
         }
     });
 }

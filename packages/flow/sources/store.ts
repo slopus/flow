@@ -5,6 +5,7 @@ export type PendingPermission = {
     id: string;
     toolName: string;
     parameters: any;
+    tool?: any; // Tool<any, any> but we avoid the import to prevent circular deps
 };
 
 export type UIStore = {

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { tool } from '../Tool.js';
 import { FileManager } from '../FileManager.js';
+import React from 'react';
+import { Text, Box } from 'ink';
 
 export function createReadTool(fileManager: FileManager) {
     return tool({
@@ -22,6 +24,23 @@ export function createReadTool(fileManager: FileManager) {
             // Format with line numbers (cat -n style)
             const startLine = 1; // We could track offset if needed
             return fileManager.formatWithLineNumbers(result.content, startLine);
+        },
+        formatTitle: (args) => {
+            return <Text bold>Read file</Text>;
+        },
+        formatQuestion: (args) => {
+            return (
+                <Box flexDirection="column">
+                    <Text bold>{args.file_path}</Text>
+                    {(args.offset !== undefined || args.limit !== undefined) && (
+                        <Text dimColor>
+                            {args.offset !== undefined && `Starting at line ${args.offset}`}
+                            {args.offset !== undefined && args.limit !== undefined && ', '}
+                            {args.limit !== undefined && `reading ${args.limit} lines`}
+                        </Text>
+                    )}
+                </Box>
+            );
         }
     });
 }

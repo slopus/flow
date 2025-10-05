@@ -53,6 +53,7 @@ export class Engine {
                 id: permission.id,
                 toolName: permission.toolName,
                 parameters: permission.parameters,
+                tool: permission.tool,
             } : null;
             this.#store.getState().setPendingPermission(pendingPermission);
         });
@@ -123,7 +124,7 @@ export class Engine {
                 log(`[PERMISSION] Requesting permission for ${toolCall!.name}`);
                 const approved = await new Promise<boolean>((resolve) => {
                     this.#permissionCallbackRef.current = resolve;
-                    this.permissionManager.requestPermission(toolCall!.name, toolCall!.arguments).then(resolve);
+                    this.permissionManager.requestPermission(toolCall!.name, toolCall!.arguments, tool).then(resolve);
                 });
 
                 if (!approved) {

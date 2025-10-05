@@ -2,56 +2,61 @@ import { Box, Text } from "ink";
 import React from "react";
 import { PendingPermission } from "../../store.js";
 import { Engine } from "../../engine/Engine.js";
-import { useKeyboard } from "../../keyboard/useKeyboard.js";
+import { SelectionBox, SelectionBoxOption } from "./SelectionBox.js";
+import { Tool } from "../../engine/Tool.js";
+
+type PermissionAction = 'approve' | 'deny';
+
+const PERMISSION_OPTIONS: SelectionBoxOption<PermissionAction>[] = [
+    { value: 'approve', label: 'Approve', color: 'green' },
+    { value: 'deny', label: 'Deny', color: 'red' },
+];
 
 export const PermissionPrompt = React.memo((props: { permission: PendingPermission, engine: Engine }) => {
     const { permission, engine } = props;
-    const [selected, setSelected] = React.useState<'approve' | 'deny'>('approve');
 
-    useKeyboard(React.useCallback((event) => {
-        if (event.type === 'command') {
-            if (event.command === 'Up') {
-                setSelected('approve');
-            } else if (event.command === 'Down') {
-                setSelected('deny');
-            } else if (event.command === 'Enter') {
-                if (selected === 'approve') {
-                    engine.permissionManager.approve(permission.id);
-                } else {
-                    engine.permissionManager.deny(permission.id);
-                }
-            }
+    const handleSelect = React.useCallback((action: PermissionAction) => {
+        if (action === 'approve') {
+            engine.permissionManager.approve(permission.id);
+        } else {
+            engine.permissionManager.deny(permission.id);
         }
-    }, [selected, permission.id, engine]));
+    }, [permission.id, engine]);
+
+    // Get the tool if available
+    const tool = permission.tool as Tool<any, any> | undefined;
+
+    // Render title using tool's formatTitle or default
+    const titleContent = tool?.formatTitle
+        ? tool.formatTitle(permission.parameters)
+        : <Text bold>{permission.toolName}</Text>;
+
+    // Render question using tool's formatQuestion or default
+    const questionContent = tool?.formatQuestion
+        ? tool.formatQuestion(permission.parameters)
+        : (
+            <>
+                <Box marginBottom={1}>
+                    <Text>Tool: <Text bold>{permission.toolName}</Text></Text>
+                </Box>
+                {Object.keys(permission.parameters).length > 0 && (
+                    <Box flexDirection="column" marginBottom={1}>
+                        <Text dimColor>Parameters:</Text>
+                        <Text dimColor>{JSON.stringify(permission.parameters, null, 2)}</Text>
+                    </Box>
+                )}
+            </>
+        );
 
     return (
-        <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={1} marginBottom={1}>
-            <Box marginBottom={1}>
-                <Text bold color="yellow">⚠ Permission Required</Text>
+        <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={1} marginBottom={1}>
+            <Box marginBottom={1} borderStyle="round" borderColor="magenta" paddingX={1}>
+                {titleContent}
             </Box>
-            <Box marginBottom={1}>
-                <Text>Tool: <Text bold>{permission.toolName}</Text></Text>
+            <Box flexDirection="column" marginBottom={1}>
+                {questionContent}
             </Box>
-            {Object.keys(permission.parameters).length > 0 && (
-                <Box flexDirection="column" marginBottom={1}>
-                    <Text dimColor>Parameters:</Text>
-                    <Text dimColor>{JSON.stringify(permission.parameters, null, 2)}</Text>
-                </Box>
-            )}
-            <Box flexDirection="column">
-                <Box>
-                    <Text color={selected === 'approve' ? 'green' : undefined}>
-                        {selected === 'approve' ? '> ' : '  '}
-                        Approve
-                    </Text>
-                </Box>
-                <Box>
-                    <Text color={selected === 'deny' ? 'red' : undefined}>
-                        {selected === 'deny' ? '> ' : '  '}
-                        Deny
-                    </Text>
-                </Box>
-            </Box>
+            <SelectionBox options={PERMISSION_OPTIONS} onSelect={handleSelect} defaultSelected={0} />
         </Box>
     );
 });
