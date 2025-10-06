@@ -12,18 +12,13 @@ function prepare() {
         const projectRoot = join(packageRoot, '..', '..');
         const distSrc = join(projectRoot, 'dist');
         const distDest = join(packageRoot, 'dist');
-        const binDir = join(packageRoot, 'bin');
 
         console.log('Preparing flow-distrib package for publishing...');
 
-        // Clean existing dist and bin directories
+        // Clean existing dist directory
         if (existsSync(distDest)) {
             console.log('Cleaning existing dist directory...');
             rmSync(distDest, { recursive: true, force: true });
-        }
-        if (existsSync(binDir)) {
-            console.log('Cleaning existing bin directory...');
-            rmSync(binDir, { recursive: true, force: true });
         }
 
         // Create dist directory
