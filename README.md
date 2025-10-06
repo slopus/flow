@@ -1,6 +1,10 @@
+<div align="center">
+  <img width="128" height="128" alt="flow-github-app" src="https://github.com/user-attachments/assets/a94efb14-e199-459d-b43f-15cdf983b307" />
+</div>
 <h1 align="center">
   Flow
 </h1>
+
 
 <h4 align="center">
 Claude Code interface, re-implemented for OpenAI's GPT-5 Codex
