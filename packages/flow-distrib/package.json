@@ -1,6 +1,6 @@
 {
     "name": "flow-coder",
-    "version": "0.0.1-alpha",
+    "version": "0.0.2-alpha",
     "type": "module",
     "description": "Flow - Terminal-based AI agent interface",
     "keywords": ["claude", "codex", "ai", "agent", "terminal", "flow"],
