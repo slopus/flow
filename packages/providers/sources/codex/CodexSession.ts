@@ -33,8 +33,23 @@ export class CodexSession implements Session {
     step = (args: StepArguments): { cancel: () => void } => {
         const abortController = new AbortController();
 
-        const input = [...this.history];
+        const input: any[] = [];
         const newHistoryItems: any[] = [];
+
+        // Add context as first user messages (not saved to history)
+        if (args.context && args.context.length > 0) {
+            for (const contextText of args.context) {
+                const contextMessage = {
+                    type: "message",
+                    role: "user",
+                    content: [{ type: "input_text", text: contextText }],
+                } as CodexUserMessage;
+                input.push(contextMessage);
+            }
+        }
+
+        // Add history after context
+        input.push(...this.history);
 
         if (args.toolResults) {
             for (const toolResult of args.toolResults) {
@@ -82,6 +97,7 @@ export class CodexSession implements Session {
                         effort: this.reasoning,
                         summary: "auto",
                     },
+                    context: args.context,
                 })) {
                     if (abortController.signal.aborted) {
                         return;

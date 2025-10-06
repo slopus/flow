@@ -11,6 +11,9 @@ export interface Tool<A, R> {
     /// The parameters of the tool.
     parameters: z.ZodSchema<A>;
 
+    /// Whether this tool only reads data without making modifications.
+    readOnly: boolean;
+
     /// The function to execute the tool.
     execute: (args: A) => Promise<R>;
 
@@ -31,6 +34,7 @@ export function tool<A, R>(config: {
     name: string;
     description: string;
     parameters: z.ZodSchema<A>;
+    readOnly?: boolean;
     execute: (args: A) => Promise<R>;
     isEnabled?: () => boolean;
     toLLM?: (result: R) => string;
@@ -41,6 +45,7 @@ export function tool<A, R>(config: {
         name: config.name,
         description: config.description,
         parameters: config.parameters,
+        readOnly: config.readOnly ?? false,
         execute: config.execute,
         isEnabled: config.isEnabled ?? (() => true),
         toLLM: config.toLLM ?? ((result) => JSON.stringify(result)),

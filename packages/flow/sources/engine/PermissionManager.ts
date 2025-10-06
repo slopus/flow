@@ -1,4 +1,5 @@
 import { AsyncLock } from "@slopus/helpers";
+import type { Engine } from "./Engine.js";
 
 export type PendingPermission = {
     id: string;
@@ -12,13 +13,35 @@ export class PermissionManager {
     private queue: PendingPermission[] = [];
     private lock = new AsyncLock();
     private onPermissionChange?: (permission: PendingPermission | null) => void;
+    private engine: Engine;
 
-    constructor(onPermissionChange?: (permission: PendingPermission | null) => void) {
+    constructor(engine: Engine, onPermissionChange?: (permission: PendingPermission | null) => void) {
+        this.engine = engine;
         this.onPermissionChange = onPermissionChange;
     }
 
     async requestPermission(toolName: string, parameters: any, tool?: any): Promise<boolean> {
+        // Auto-approve if the current mode bypasses permissions (outside lock for efficiency)
+        if (this.engine.mode.bypassPermissions) {
+            return true;
+        }
+
+        // Auto-approve read-only tools when mode allows read-only (outside lock for efficiency)
+        if (this.engine.mode.allowReadOnly && tool?.readOnly) {
+            return true;
+        }
+
         return this.lock.inLock(async () => {
+            // Double-check inside lock in case mode changed
+            if (this.engine.mode.bypassPermissions) {
+                return true;
+            }
+
+            // Double-check read-only auto-approval inside lock
+            if (this.engine.mode.allowReadOnly && tool?.readOnly) {
+                return true;
+            }
+
             const id = Math.random().toString(36).substring(7);
 
             return new Promise<boolean>((resolve) => {

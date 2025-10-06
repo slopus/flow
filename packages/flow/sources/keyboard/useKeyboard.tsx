@@ -20,7 +20,9 @@ export type KeyCommand =
     | 'Ctrl+C'
     | 'Ctrl+D'
     | 'Tab'
-    | 'Shift+Tab';
+    | 'Shift+Tab'
+    | 'Focus'
+    | 'Unfocus';
 
 type KeyboardListener = (event: KeyboardEvent) => void;
 
@@ -58,7 +60,18 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, [emit]);
 
     useInput((input, key) => {
-        // log('useInput received:', { input, key });
+        log('useInput received:', { input, key });
+
+        // Focus events (ANSI escape sequences)
+        if (input === '[I') {
+            emit({ type: 'command', command: 'Focus' });
+            return;
+        }
+
+        if (input === '[O') {
+            emit({ type: 'command', command: 'Unfocus' });
+            return;
+        }
 
         // Ctrl+C
         if (key.ctrl && input === 'c') {

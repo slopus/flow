@@ -1,5 +1,6 @@
 import { ModelDescriptor } from "@slopus/providers";
 import { create } from "zustand";
+import { OperationMode } from "./engine/OperationMode.js";
 
 export type PendingPermission = {
     id: string;
@@ -10,12 +11,15 @@ export type PendingPermission = {
 
 export type UIStore = {
     model: string;
+    mode: OperationMode;
+    knownModes: OperationMode[];
     thinking: string | null;
     history: HistoryRecord[];
     composer: ComposerState;
     exitRequested: string | null;
     pendingPermission: PendingPermission | null;
     setModel: (model: ModelDescriptor) => void;
+    setMode: (slug: string) => void;
     setThinking: (thinking: string | boolean) => void;
     appendHistory: (record: HistoryRecord) => void;
     composerType: (text: string) => void;
@@ -55,11 +59,13 @@ export type HistoryRecord = {
     text: string;
 };
 
-export function createEngineStore(model: ModelDescriptor, permissionCallbackRef?: { current: ((approved: boolean) => void) | null }) {
+export function createEngineStore(model: ModelDescriptor, knownModes: OperationMode[], permissionCallbackRef?: { current: ((approved: boolean) => void) | null }) {
     let exitTimer: Timer | null = null;
 
     return create<UIStore>((set, get) => ({
         model: model.displayName,
+        mode: knownModes[0],
+        knownModes: [...knownModes],
         thinking: null,
         history: [],
         composer: {
@@ -69,6 +75,13 @@ export function createEngineStore(model: ModelDescriptor, permissionCallbackRef?
         exitRequested: null,
         pendingPermission: null,
         setModel: (model: ModelDescriptor) => set({ model: model.displayName }),
+        setMode: (slug: string) => set((state) => {
+            const mode = state.knownModes.find(m => m.slug === slug);
+            if (!mode) {
+                return state;
+            }
+            return { mode };
+        }),
         setThinking: (thinking: string | boolean) => set(state => ({
             thinking: typeof thinking === 'string' ? thinking : (
                 thinking === true

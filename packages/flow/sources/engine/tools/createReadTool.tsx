@@ -13,6 +13,7 @@ export function createReadTool(fileManager: FileManager) {
             offset: z.number().optional().describe('The line number to start reading from. Only provide if the file is too large to read at once'),
             limit: z.number().optional().describe('The number of lines to read. Only provide if the file is too large to read at once')
         }),
+        readOnly: true,
         execute: async (args) => {
             const result = await fileManager.read(args.file_path, {
                 offset: args.offset,

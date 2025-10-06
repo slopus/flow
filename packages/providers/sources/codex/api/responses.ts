@@ -81,6 +81,7 @@ export interface CodexRequest {
         effort: "low" | "medium" | "high";
         summary: "auto" | "detailed";
     };
+    context?: string[];
 }
 
 // ============================================================================

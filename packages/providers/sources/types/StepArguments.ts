@@ -17,4 +17,5 @@ export type StepArguments = {
     callback: (update: SessionUpdate) => void;
     tools?: ToolDefinition[];
     webSearch?: boolean;
+    context?: string[];
 }

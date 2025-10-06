@@ -3,13 +3,16 @@ import { createEngineStore, PendingPermission } from "../store.js";
 import { Tool } from "./Tool.js";
 import { FileManager } from "./FileManager.js";
 import { PermissionManager } from "./PermissionManager.js";
+import { ContextManager } from "./ContextManager.js";
 import { log } from "@slopus/helpers";
+import { OperationMode } from "./OperationMode.js";
 
 export class Engine {
 
     readonly models = new Map<string, { descriptor: ModelDescriptor, provider: ModelProvider, priority: number }>();
     readonly fileManager = new FileManager();
     readonly permissionManager: PermissionManager;
+    readonly contextManager: ContextManager;
 
     #cwd: string;
     #currentModel: string;
@@ -26,7 +29,7 @@ export class Engine {
     #abort: AbortController | null = null;
     #tools: Map<string, Tool<any, any>> = new Map();
 
-    constructor(cwd: string, providers: ModelProvider[]) {
+    constructor(cwd: string, providers: ModelProvider[], knownModes: OperationMode[]) {
         this.#cwd = cwd;
 
         // Build models map
@@ -47,8 +50,11 @@ export class Engine {
         // Create session
         this.#currentSession = this.models.get(this.#currentModel)!.provider.createSession(this.#currentModel);
 
-        // Create permission manager
-        this.permissionManager = new PermissionManager((permission) => {
+        // Create store with default modes (before permission manager)
+        this.#store = createEngineStore(this.model, knownModes, this.#permissionCallbackRef);
+
+        // Create permission manager (after store so it can access this.mode)
+        this.permissionManager = new PermissionManager(this, (permission) => {
             const pendingPermission: PendingPermission | null = permission ? {
                 id: permission.id,
                 toolName: permission.toolName,
@@ -58,11 +64,11 @@ export class Engine {
             this.#store.getState().setPendingPermission(pendingPermission);
         });
 
-        // Create store
-        this.#store = createEngineStore(this.model, this.#permissionCallbackRef);
-
         // Set tools
         this.#tools = new Map();
+
+        // Instantiate managers
+        this.contextManager = new ContextManager(this);
     }
 
     addTool(tool: Tool<any, any>) {
@@ -83,6 +89,10 @@ export class Engine {
 
     get cwd() {
         return this.#cwd;
+    }
+
+    get mode() {
+        return this.#store.getState().mode;
     }
 
     send = (text: string) => {
@@ -188,6 +198,7 @@ export class Engine {
 
             // Start thinking
             // this.#store.getState().appendHistory({ type: 'debug', text: 'start thinking' });
+            const context = this.contextManager.resolve();
             this.#currentSession.step({
                 text,
                 toolResults,
@@ -197,6 +208,7 @@ export class Engine {
                     parameters: tool.parameters,
                 })),
                 webSearch: true,
+                context: context.length > 0 ? context : undefined,
                 callback: (update) => {
                     if (abort.signal.aborted) {
                         return;

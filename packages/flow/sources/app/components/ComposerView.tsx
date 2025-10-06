@@ -7,15 +7,13 @@ import { useKeyboard } from "sources/keyboard/useKeyboard.jsx";
 export const ComposerView = React.memo((props: { engine: Engine }) => {
 
     const exitRequested = props.engine.store().exitRequested;
-
-    const [mode, setMode] = React.useState<'read-only' | 'default'>('default');
-    const [thinking, setThinking] = React.useState<'low' | 'medium' | 'high' | 'auto'>('auto');
+    const mode = props.engine.store().mode;
+    const knownModes = props.engine.store().knownModes;
     const nextMode = React.useCallback(() => {
-        setMode(mode === 'read-only' ? 'default' : 'read-only');
-    }, [mode]);
-    const nextThinking = React.useCallback(() => {
-        setThinking(thinking === 'auto' ? 'low' : thinking === 'low' ? 'medium' : thinking === 'medium' ? 'high' : 'auto');
-    }, [thinking]);
+        const currentIndex = knownModes.findIndex(m => m.slug === mode.slug);
+        const nextIndex = (currentIndex + 1) % knownModes.length;
+        props.engine.store.getState().setMode(knownModes[nextIndex].slug);
+    }, [props.engine, mode, knownModes]);
     useKeyboard(React.useCallback((event) => {
         // log('keyboard event', event);
         if (event.type === 'command') {
@@ -27,28 +25,38 @@ export const ComposerView = React.memo((props: { engine: Engine }) => {
                     }
                     break;
                 case 'Tab':
-                    nextThinking();
+                    // nextThinking();
                     break;
                 case 'Shift+Tab':
                     nextMode();
                     break;
             }
         }
-    }, [props.engine, nextThinking, nextMode]));
+    }, [props.engine, nextMode]));
 
     return (
-        <Box flexDirection="column">
-            <Box flexDirection="row" height={1}>
-                <Box flexDirection="row" height={1} flexGrow={1} flexBasis={0}>
-                    <Text>Mode: {mode}</Text>
-                </Box>
-                <Box flexDirection="row" height={1}>
-                    <Text>{props.engine.model.displayName} {thinking}</Text>
-                </Box>
-            </Box>
+        <Box flexDirection="column" width={'100%'} alignItems="stretch">
             <ComposerInputView engine={props.engine} placeholder="Type your message..." />
-            <Box flexDirection="row" height={1} marginBottom={1}>
-                {exitRequested && <Text dimColor>Press {exitRequested} again to exit</Text>}
+            <Box flexDirection="row" height={1} width={'100%'}>
+                {exitRequested && (
+                    <Text dimColor>{'  '}Press {exitRequested} again to exit</Text>
+                )}
+                {!exitRequested && (
+                    <>
+                        <Box flexDirection="row" flexGrow={1} flexBasis={0}>
+                            {mode.slug !== 'default' && (
+                                <Text color={mode.color}>
+                                    <Text>{'  '}{mode.icon}{' '}</Text>
+                                    <Text>{mode.description}</Text>
+                                    <Text dimColor> (shift+tab to cycle)</Text>
+                                </Text>
+                            )}
+                        </Box>
+                        <Box flexDirection="row" height={1} alignItems="flex-end">
+                            <Text>{props.engine.model.displayName}</Text>
+                        </Box>
+                    </>
+                )}
             </Box>
         </Box>
     );
