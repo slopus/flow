@@ -1,7 +1,6 @@
 import { Box, Text } from "ink";
 import * as React from "react";
 import { textWrap } from "@slopus/helpers";
-import { useKeyboard } from "../../keyboard/useKeyboard.jsx";
 import { Engine } from "../../engine/Engine.js";
 
 interface ComposerInputProps {
@@ -55,67 +54,6 @@ export const ComposerInputView = React.memo<ComposerInputProps>(({
             cursorCol: foundCol
         };
     }, [text, cursor, contentWidth]);
-
-    // Handle keyboard events
-    useKeyboard(React.useCallback((event) => {
-        if (event.type === 'text') {
-            store.composerType(event.text);
-            return;
-        }
-
-        // Handle commands
-        switch (event.command) {
-            case 'Ctrl+A':
-                store.composerSetCursor(0);
-                break;
-            case 'Ctrl+E':
-                store.composerSetCursor(text.length);
-                break;
-            case 'Shift+Enter':
-                store.composerType('\n');
-                break;
-            case 'Backspace':
-                store.composerBackspace();
-                break;
-            case 'Delete':
-                store.composerDelete();
-                break;
-            case 'Left':
-                store.composerMoveCursor(-1);
-                break;
-            case 'Right':
-                store.composerMoveCursor(1);
-                break;
-            case 'Up':
-                // Move to previous line at same column position
-                if (cursorRow > 0) {
-                    const targetCol = Math.min(cursorCol, lines[cursorRow - 1].length);
-                    let newCursor = 0;
-                    for (let i = 0; i < cursorRow - 1; i++) {
-                        newCursor += lines[i].length + 1;
-                    }
-                    newCursor += targetCol;
-                    store.composerSetCursor(newCursor);
-                } else {
-                    store.composerSetCursor(0);
-                }
-                break;
-            case 'Down':
-                // Move to next line at same column position
-                if (cursorRow < lines.length - 1) {
-                    const targetCol = Math.min(cursorCol, lines[cursorRow + 1].length);
-                    let newCursor = 0;
-                    for (let i = 0; i <= cursorRow; i++) {
-                        newCursor += lines[i].length + 1;
-                    }
-                    newCursor += targetCol;
-                    store.composerSetCursor(newCursor);
-                } else {
-                    store.composerSetCursor(text.length);
-                }
-                break;
-        }
-    }, [store, text.length, cursorRow, cursorCol, lines]));
 
     const isEmpty = text === '';
     const separator = '─'.repeat(terminalWidth);

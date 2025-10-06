@@ -6,7 +6,7 @@ if (!token) {
     throw new Error('TEST_OPENAI_TOKEN not found in environment');
 }
 
-await boot();
+boot();
 
 
 
@@ -63,6 +63,6 @@ await boot();
 //     console.log(update);
 // }
 
-while (true) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-}
+// while (true) {
+//     await new Promise(resolve => setTimeout(resolve, 1000));
+// }

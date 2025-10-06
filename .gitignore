@@ -2,3 +2,4 @@ node_modules
 trash
 .claude/settings.local.json
 log.txt
+dist

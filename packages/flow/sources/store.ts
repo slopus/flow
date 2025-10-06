@@ -22,6 +22,7 @@ export type UIStore = {
     setMode: (slug: string) => void;
     setThinking: (thinking: string | boolean) => void;
     appendHistory: (record: HistoryRecord) => void;
+    clearHistory: () => void;
     composerType: (text: string) => void;
     composerBackspace: () => void;
     composerDelete: () => void;
@@ -90,6 +91,7 @@ export function createEngineStore(model: ModelDescriptor, knownModes: OperationM
             )
         })),
         appendHistory: (record: HistoryRecord) => set(state => ({ history: [...state.history, record] })),
+        clearHistory: () => set({ history: [] }),
         composerType: (text: string) => set((state) => {
             const newText = state.composer.text.slice(0, state.composer.cursor) + text + state.composer.text.slice(state.composer.cursor);
             const newCursor = state.composer.cursor + text.length;

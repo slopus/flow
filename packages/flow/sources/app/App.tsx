@@ -13,7 +13,7 @@ export const App = React.memo((props: { engine: Engine }) => {
     const store = props.engine.store();
     const [shouldExit, setShouldExit] = React.useState(false);
 
-    // Handle global keyboard commands (only when no permission is pending)
+    // Handle global keyboard commands (only exit commands, composer handles text/enter)
     useKeyboard(React.useCallback((event) => {
         // log('keyboard event', event);
 
@@ -24,12 +24,6 @@ export const App = React.memo((props: { engine: Engine }) => {
 
         if (event.type === 'command') {
             switch (event.command) {
-                case 'Enter':
-                    const text = store.composerSubmit();
-                    if (text) {
-                        props.engine.send(text);
-                    }
-                    break;
                 case 'Ctrl+C':
                     if (store.requestExit('Ctrl+C')) {
                         setShouldExit(true);

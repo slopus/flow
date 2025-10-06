@@ -5,11 +5,17 @@
     "workspaces": [
         "packages/flow",
         "packages/helpers",
-        "packages/providers"
+        "packages/providers",
+        "packages/ripgrep"
     ],
     "scripts": {
         "dev": "DEBUG=1 bun run packages/flow/sources/index.ts",
         "typecheck": "bun run --filter '*/*' typecheck",
-        "format": "bunx prettier --write --"
+        "format": "bunx prettier --write --",
+        "build": "bun build packages/flow/sources/index.ts --compile --minify --sourcemap --outfile dist/flow"
+    },
+    "dependencies": {
+        "fuse.js": "^7.1.0",
+        "react-devtools-core": "^6.1.5"
     }
 }
