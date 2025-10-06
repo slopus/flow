@@ -1,10 +1,18 @@
+<div align="center">
+  <img width="128" height="128" alt="flow-github-app" src="https://github.com/user-attachments/assets/a94efb14-e199-459d-b43f-15cdf983b307" />
+</div>
 <h1 align="center">
   Flow
 </h1>
 
+
 <h4 align="center">
 Claude Code interface, re-implemented for OpenAI's GPT-5 Codex
 </h4>
+
+<div align="center">
+<img width="857" height="659" alt="Screenshot 2025-10-05 at 6 58 07 PM" src="https://github.com/user-attachments/assets/5d35217b-908d-48a1-96cd-1fe534166f1d" />
+</div>
 
 <div align="center">
 
@@ -24,6 +32,7 @@ Coming soon - macOS, Linux, Windows
 Step 2: Set your OpenAI token
 </h3>
 
+For beta token must be provided manually, it is an access token from "auth.json" from your codex folder.
 ```bash
 export TEST_OPENAI_TOKEN=your-codex-token
 ```
