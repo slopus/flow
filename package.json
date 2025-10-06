@@ -4,6 +4,7 @@
     "type": "module",
     "workspaces": [
         "packages/flow",
+        "packages/flow-distrib",
         "packages/helpers",
         "packages/providers",
         "packages/ripgrep"
@@ -12,10 +13,13 @@
         "dev": "DEBUG=1 bun run packages/flow/sources/index.ts",
         "typecheck": "bun run --filter '*/*' typecheck",
         "format": "bunx prettier --write --",
-        "build": "bun build packages/flow/sources/index.ts --compile --minify --sourcemap --outfile dist/flow"
-    },
-    "dependencies": {
-        "fuse.js": "^7.1.0",
-        "react-devtools-core": "^6.1.5"
+        "build:windows": "bun build packages/flow/sources/index.ts --compile --minify --target=bun-windows-x64 --outfile dist/flow-windows-x64",
+        "build:macos-intel": "bun build packages/flow/sources/index.ts --compile --minify --target=bun-darwin-x64 --outfile dist/flow-macos-x64",
+        "build:macos-arm": "bun build packages/flow/sources/index.ts --compile --minify --target=bun-darwin-arm64 --outfile dist/flow-macos-arm64",
+        "build:linux-x64": "bun build packages/flow/sources/index.ts --compile --minify --target=bun-linux-x64 --outfile dist/flow-linux-x64",
+        "build:linux-arm": "bun build packages/flow/sources/index.ts --compile --minify --target=bun-linux-arm64 --outfile dist/flow-linux-arm64",
+        "build": "bun run build:windows && bun run build:macos-intel && bun run build:macos-arm && bun run build:linux-x64 && bun run build:linux-arm",
+        "publish:prepare": "bun run build && bun run --filter flow-coder prepare",
+        "publish": "bun run publish:prepare && cd packages/flow-distrib && npm publish"
     }
 }

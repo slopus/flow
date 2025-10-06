@@ -1,0 +1,23 @@
+{
+    "name": "flow-coder",
+    "version": "0.0.1-alpha",
+    "type": "module",
+    "description": "Flow - Terminal-based AI agent interface",
+    "bin": {
+        "flow": "bin/flow"
+    },
+    "scripts": {
+        "postinstall": "node sources/install.js",
+        "prepare": "node sources/prepare.js",
+        "clean": "rm -rf dist bin README.md LICENSE"
+    },
+    "files": [
+        "dist",
+        "sources/install.js",
+        "README.md",
+        "LICENSE"
+    ],
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}

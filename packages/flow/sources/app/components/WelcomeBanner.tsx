@@ -2,6 +2,7 @@ import { trimIndent } from "@slopus/helpers";
 import { Box, Text } from "ink";
 import * as React from "react";
 import { theme } from "../theme.js";
+import packageJson from "../../../package.json" with { type: "json" };
 
 const text = trimIndent(`
 ░█░█░█▀█░█▀█░█▀█░█░█
@@ -23,7 +24,7 @@ export const WelcomeBanner = React.memo(() => {
                 <Text color={theme.accent}>Happy Coder</Text>
                 <Text>v0.1.0</Text>
             </Box> */}
-            <Text><Text color={theme.accent}>{'⏺'}</Text>{' '}Hello, how can I help you today?</Text>
+            <Text><Text color={theme.accent}>{'⏺'}</Text>{' '}Welcome to Flow <Text dimColor>(v{packageJson.version})</Text></Text>
         </Box>
     )
 });
