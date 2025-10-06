@@ -3,12 +3,16 @@
     "version": "0.0.1-alpha",
     "type": "module",
     "description": "Flow - Terminal-based AI agent interface",
+    "keywords": ["claude", "codex", "ai", "agent", "terminal", "flow"],
+    "homepage": "https://github.com/slopus/flow",
+    "bugs": "https://github.com/slopus/flow/issues",
+    "repository": "slopus/flow",
     "bin": {
         "flow": "bin/flow.js"
     },
     "scripts": {
         "prepare": "node sources/prepare.js",
-        "clean": "rm -rf dist README.md LICENSE"
+        "clean": "rm -rf README.md LICENSE"
     },
     "files": [
         "bin/flow.js",

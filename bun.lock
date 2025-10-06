@@ -34,7 +34,7 @@
       "name": "flow-coder",
       "version": "0.0.1-alpha",
       "bin": {
-        "flow": "bin/flow",
+        "flow": "bin/flow.js",
       },
     },
     "packages/helpers": {
