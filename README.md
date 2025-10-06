@@ -21,12 +21,12 @@ Claude Code interface, re-implemented for OpenAI's GPT-5 Codex
 </div>
 
 <h3 align="center">
-Step 1: Download the binary
+Step 1: Install the binary
 </h3>
 
-<div align="center">
-Coming soon - macOS, Linux, Windows
-</div>
+```bash
+npm install -g flow-coder@latest
+```
 
 <h3 align="center">
 Step 2: Set your OpenAI token
