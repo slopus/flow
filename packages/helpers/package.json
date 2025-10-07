@@ -10,10 +10,15 @@
     },
     "dependencies": {
         "bun-types": "latest",
+        "shell-quote": "^1.8.3",
         "string-width": "^7.2.0",
+        "tree-sitter": "0.22.4",
+        "tree-sitter-bash": "0.23.3",
+        "web-tree-sitter": "0.22.6",
         "zod": "^4.1.8"
     },
     "devDependencies": {
+        "@types/shell-quote": "^1.7.5",
         "typescript": "^5.9.3"
     }
 }

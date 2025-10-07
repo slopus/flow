@@ -7,6 +7,7 @@ import { KeyboardProvider } from "sources/keyboard/useKeyboard.js";
 import { createReadTool } from "sources/engine/tools/createReadTool.js";
 import { createWriteTool } from "sources/engine/tools/createWriteTool.js";
 import { createEditTool } from "sources/engine/tools/createEditTool.js";
+import { createBashTool } from "sources/engine/tools/createBashTool.js";
 import { OperationMode } from "sources/engine/OperationMode.js";
 
 export async function boot() {
@@ -59,6 +60,7 @@ export async function boot() {
     engine.addTool(createReadTool(engine.fileManager));
     engine.addTool(createWriteTool(engine.fileManager));
     engine.addTool(createEditTool(engine.fileManager));
+    engine.addTool(createBashTool(engine));
     render(
         <KeyboardProvider>
             <App engine={engine} />

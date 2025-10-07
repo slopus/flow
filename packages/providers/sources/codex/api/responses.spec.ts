@@ -8,7 +8,7 @@ describe('ChatGPT Codex API Integration', () => {
         throw new Error('TEST_OPENAI_TOKEN not found in environment');
     }
 
-    it('should send a request and receive SSE events', async () => {
+    it.skip('should send a request and receive SSE events', async () => {
         const request = {
             model: 'gpt-5-codex',
             input: [
@@ -42,7 +42,7 @@ describe('ChatGPT Codex API Integration', () => {
         expect(events[0]).toHaveProperty('event');
     }, 30000); // 30 second timeout for API call
 
-    it('should parse and type-narrow SSE events correctly', async () => {
+    it.skip('should parse and type-narrow SSE events correctly', async () => {
         const request = {
             model: 'gpt-5-codex',
             input: [

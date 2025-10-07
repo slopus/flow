@@ -32,7 +32,7 @@
     },
     "packages/flow-distrib": {
       "name": "flow-coder",
-      "version": "0.0.1-alpha",
+      "version": "0.0.2-alpha",
       "bin": {
         "flow": "bin/flow.js",
       },
@@ -42,10 +42,15 @@
       "version": "0.0.1",
       "dependencies": {
         "bun-types": "latest",
+        "shell-quote": "^1.8.3",
         "string-width": "^7.2.0",
+        "tree-sitter": "0.22.4",
+        "tree-sitter-bash": "0.23.3",
+        "web-tree-sitter": "0.22.6",
         "zod": "^4.1.8",
       },
       "devDependencies": {
+        "@types/shell-quote": "^1.7.5",
         "typescript": "^5.9.3",
       },
     },
@@ -129,6 +134,8 @@
     "@types/node": ["@types/node@24.6.1", "", { "dependencies": { "undici-types": "~7.13.0" } }, "sha512-ljvjjs3DNXummeIaooB4cLBKg2U6SPI6Hjra/9rRIy7CpM0HpLtG9HptkMKAb4HYWy5S7HUvJEuWgr/y0U8SHw=="],
 
     "@types/react": ["@types/react@19.1.16", "", { "dependencies": { "csstype": "^3.0.2" } }, "sha512-WBM/nDbEZmDUORKnh5i1bTnAz6vTohUf9b8esSMu+b24+srbaxa04UbJgWx78CVfNXA20sNu0odEIluZDFdCog=="],
+
+    "@types/shell-quote": ["@types/shell-quote@1.7.5", "", {}, "sha512-+UE8GAGRPbJVQDdxi16dgadcBfQ+KG2vgZhV1+3A1XmHbmwcdwhCUwIdy+d3pAGrbvgRoVSjeI9vOWyq376Yzw=="],
 
     "ai": ["ai@5.0.59", "", { "dependencies": { "@ai-sdk/gateway": "1.0.32", "@ai-sdk/provider": "2.0.0", "@ai-sdk/provider-utils": "3.0.10", "@opentelemetry/api": "1.9.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-SuAFxKXt2Ha9FiXB3gaOITkOg9ek/3QNVatGVExvTT4gNXc+hJpuNe1dmuwf6Z5Op4fzc8wdbsrYP27ZCXBzlw=="],
 
@@ -214,6 +221,10 @@
 
     "minipass": ["minipass@7.1.2", "", {}, "sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw=="],
 
+    "node-addon-api": ["node-addon-api@8.5.0", "", {}, "sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A=="],
+
+    "node-gyp-build": ["node-gyp-build@4.8.4", "", { "bin": { "node-gyp-build": "bin.js", "node-gyp-build-optional": "optional.js", "node-gyp-build-test": "build-test.js" } }, "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ=="],
+
     "onetime": ["onetime@5.1.2", "", { "dependencies": { "mimic-fn": "^2.1.0" } }, "sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg=="],
 
     "openai-zod-to-json-schema": ["openai-zod-to-json-schema@1.1.2", "", { "peerDependencies": { "zod": "^3.23.8" } }, "sha512-c23mG4XutId7WAQmmB/TRMF7sY1Y7Z78bEqJUpgAzBXGxlGAWU56a0eqoGVqPCqjOpSuHFC2uT2WMHn6/molsg=="],
@@ -256,11 +267,17 @@
 
     "strip-ansi-cjs": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
 
+    "tree-sitter": ["tree-sitter@0.22.4", "", { "dependencies": { "node-addon-api": "^8.3.0", "node-gyp-build": "^4.8.4" } }, "sha512-usbHZP9/oxNsUY65MQUsduGRqDHQOou1cagUSwjhoSYAmSahjQDAVsh9s+SlZkn8X8+O1FULRGwHu7AFP3kjzg=="],
+
+    "tree-sitter-bash": ["tree-sitter-bash@0.23.3", "", { "dependencies": { "node-addon-api": "^8.2.1", "node-gyp-build": "^4.8.2" }, "peerDependencies": { "tree-sitter": "^0.21.1" }, "optionalPeers": ["tree-sitter"] }, "sha512-36cg/GQ2YmIbeiBeqeuh4fBJ6i4kgVouDaqTxqih5ysPag+zHufyIaxMOFeM8CeplwAK/Luj1o5XHqgdAfoCZg=="],
+
     "type-fest": ["type-fest@4.41.0", "", {}, "sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "undici-types": ["undici-types@7.13.0", "", {}, "sha512-Ov2Rr9Sx+fRgagJ5AX0qvItZG/JKKoBRAVITs1zk7IqZGTJUwgUr7qoYBpWwakpWilTZFM98rG/AFRocu10iIQ=="],
+
+    "web-tree-sitter": ["web-tree-sitter@0.22.6", "", {}, "sha512-hS87TH71Zd6mGAmYCvlgxeGDjqd9GTeqXNqTT+u0Gs51uIozNIaaq/kUAbV/Zf56jb2ZOyG8BxZs2GG9wbLi6Q=="],
 
     "which": ["which@2.0.2", "", { "dependencies": { "isexe": "^2.0.0" }, "bin": { "node-which": "./bin/node-which" } }, "sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA=="],
 

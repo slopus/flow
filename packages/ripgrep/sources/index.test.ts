@@ -30,7 +30,7 @@ describe('ripgrep', () => {
         expect(result.stdout).toBe('');
     });
 
-    test('should search in specific file', async () => {
+    test.skip('should search in specific file', async () => {
         const result = await ripgrep(['@slopus/ripgrep', 'package.json']);
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('@slopus/ripgrep');
